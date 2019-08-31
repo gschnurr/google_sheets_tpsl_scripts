@@ -1,5 +1,4 @@
-
-//first global function
+//Global Functions
 function flatten_arr(targetArr) {
   var flatArr = [];
   var row, column;
@@ -10,12 +9,4 @@ function flatten_arr(targetArr) {
     }
   }
   return flatArr
-}
-
-//test showing how it should work
-function test_flatten_arr() {
-  var findGdprColumnArr = tpsl.getRange(2, 1, 1, tpslLc).getValues();
-  var tcaOned = flatten_arr(findGdprColumnArr);
-  SpreadsheetApp.getUi().alert(findGdprColumnArr[0]);
-  SpreadsheetApp.getUi().alert(tcaOned[0]);
 }

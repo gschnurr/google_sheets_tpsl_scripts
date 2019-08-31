@@ -1,7 +1,3 @@
-/** @OnlyCurrentDoc */
-
-//I might need to add data validation support
-
 function pp_information_prompt() {
   var htmlOutput = HtmlService
     .createHtmlOutput ('<p>1) Make sure that 1_Business Systems Sheet does not have a filter and that the sheet name has not changed </p>' +
@@ -15,44 +11,16 @@ function pp_information_prompt() {
     '<p> 9) Repeat step one to generate a clean file for legal.</p>'
   )
     .setTitle('PayPal Quarterly Extract Instructions');
-  SpreadsheetApp.getUi().showSidebar(htmlOutput);
+  ui.showSidebar(htmlOutput);
 }
 
 function tpsl_pp_extract() {
-  //general variables
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 
-  //time and date variables
-  var tz = ss.getSpreadsheetTimeZone();
-  var date = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var tcaOned = flatten_arr(tpslTitleColumnArr);
 
-  //tpsl variables
-  var tpsl = ss.getSheetByName('1_Business Systems');
-  var tpslLr = tpsl.getLastRow();
-  var tpslLc = tpsl.getLastColumn();
-  var tpslAllCells = tpsl.getRange(1, 1, tpslLr, tpslLc);
-
-  //finding gdpr column and creating a variable on the gdpr column number
-  function flatten_tca() {
-    var tcaFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tpsl = ss.getSheetByName('1_Business Systems');
-    var tpslLc = tpsl.getLastColumn();
-    var findTitleColumnArr =tpsl.getRange(2, 1, 1, tpslLc).getValues();
-
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        tcaFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return tcaFlat
-  }
-
-  var tcaOned = flatten_tca();
-
+  //finding gpdr column start position
   for (var i = 0; i < tcaOned.length; i++) {
     if (tcaOned[i] === 'GDPR Data (Y,N)') {
       var gdprColPos = i + 1; //add one because arrays start at 0 not 1
@@ -94,14 +62,6 @@ function tpsl_pp_extract() {
   //deleting un-needed columns
   var arrAdj = 1;
 
-  //This array contains all of the columns that you want to keep in the extract
-  //If you would like a new column added please add the column header exactly as it is into the array
-
-  var ppeColsArr = ['SL-ID', 'Application', 'Supplier (Third Party Vendor)', 'Application Manager',
-  'Business System Owner', 'GDPR Data (Y,N)', 'Employee Data', 'End Customer Data', 'Merchant Data',
-  'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
-  'Headquarter location'];
-
   for (var d = 0; d < tcaOned.length; d++) {
     if (ppeColsArr.indexOf(tcaOned[d]) == -1) {
       var colPos = d + arrAdj;
@@ -139,47 +99,24 @@ function tpsl_pp_extract() {
   sheets[0].activate();
 
   //alert for end of macro
-  SpreadsheetApp.getUi().alert('Extract Created, Please check your google sheet files for the PayPal Extract with Todays Date');
+  ui.alert('Extract Created, Please check your google sheet files for the PayPal Extract with Todays Date');
 };
-
-
-
 
 function get_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var tz = ss.getSpreadsheetTimeZone();
-  var date = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
 
   //change the name of the copied sheet
   ss.getSheetByName('Copy of PayPal Extract').setName('PayPal Extract');
-
   var ppe = ss.getSheetByName('PayPal Extract');
-
-  //ppe variables
   var ppeLr = ppe.getLastRow();
   var ppeLc = ppe.getLastColumn();
   var ppeAllCells = ppe.getRange(1, 1, ppeLr, ppeLc);
 
-  // find the updates column and create a variable with the integer of the column position
-  function flatten_ppe_arr_rus() {
-    var parFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var ppe = ss.getSheetByName('PayPal Extract');
-    var ppeLc = ppe.getLastColumn();
-    var findTitleColumnArr =ppe.getRange(1, 1, 1, ppeLc).getValues();
+  var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
+  var parOned = flatten_arr(ppeTitleColumnArr);
 
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        parFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return parFlat
-  }
-
-  var parOned = flatten_ppe_arr_rus();
-
+  //find the updates column and create a variable with the integer of the column position
   for (var i = 0; i < parOned.length; i++) {
     if (parOned[i] === 'Updates? (Y/N) If yes please make the updates in this sheet') {
       var updatesColPos = i + 1; //add one because arrays start at 0 not 1
@@ -222,32 +159,8 @@ function get_updates() {
     }
   }
   //get originals
-
-  //tpsl variables and finding the integer for gdpr column
-  var tpsl = ss.getSheetByName('1_Business Systems');
-  var tpslLr = tpsl.getLastRow();
-  var tpslLc = tpsl.getLastColumn();
-  var tpslRange = tpsl.getRange(4, 1, tpslLr, 1);
-  var tpslArray = tpslRange.getValues();
-  var tpslStartRow = tpslRange.getRow();
-
-  function flatten_tca() {
-    var tcaFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tpsl = ss.getSheetByName('1_Business Systems');
-    var tpslLc = tpsl.getLastColumn();
-    var findTitleColumnArr =tpsl.getRange(2, 1, 1, tpslLc).getValues();
-
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        tcaFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return tcaFlat
-  }
-
-  var tcaOned = flatten_tca();
+  //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
+  var tcaOned = flatten_arr(tpslTitleColumnArr);
 
   for (var i = 0; i < tcaOned.length; i++) {
     if (tcaOned[i] === 'GDPR Data (Y,N)') {
@@ -257,50 +170,21 @@ function get_updates() {
       continue;
     }
   }
-
+  //number of columns in the GDPR column set
   var tpslGdprEndCol = 9;
-
-  //creating a one Dimensional array of the IDs in the tpsl sheet
-  function flatten_tpsl() {
-    var tpslFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tpsl = ss.getSheetByName('1_Business Systems');
-    var tpslLr = tpsl.getLastRow();
-    var tpslRange = tpsl.getRange(4, 1, tpslLr, 1);
-    var tpslArray = tpslRange.getValues();
-
-    for (row = 0; row < tpslArray.length; row++) {
-      for (column = 0; column < tpslArray[row].length; column++) {
-        tpslFlat.push(tpslArray[row][column]);
-      }
-    }
-    return tpslFlat;
-  }
-
-  var tpslOned = flatten_tpsl();
-
-  //rus array and identification
+  //A 1d array of the IDs in the tpsl sheet
+  var tpslOned = flatten_arr(tpslArray);
+  //rus variables
   var rus = ss.getSheetByName('Review Updates');
-
-  function flatten_rustca() {
-    var rustcaFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var rus = ss.getSheetByName('Review Updates');
-    var rusLc = rus.getLastColumn();
-    var findTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
-
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        rustcaFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return rustcaFlat
-  }
-
-  var rustcaOned = flatten_rustca();
-
+  var rusLc = rus.getLastColumn();
+  var rusTitleColumnArr = rus.getRange(1, 1, 1, rusLc).getValues();
+  var rusLr = rus.getLastRow();
+  var rusRange = rus.getRange(2, 1, rusLr, 1);
+  var rusArray = rusRange.getValues();
+  var rusStartRow = rusRange.getRow();
+  // creating a 1d arr of column headers in rus
+  var rustcaOned = flatten_arr(rusTitleColumnArr);
+  //identification of GDPR column position
   for (var i = 0; i < rustcaOned.length; i++) {
     if (rustcaOned[i] === 'GDPR Data (Y,N)') {
       var rusGdprBegCol= i + 1; //add one because arrays start at 0 not 1
@@ -309,37 +193,15 @@ function get_updates() {
       continue;
     }
   }
+  //number of columns in the GDPR column set
   var rusGdprEndCol = 9;
-
-  function flatten_rus() {
-    var rusFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var rus = ss.getSheetByName('Review Updates');
-    var rusLr = rus.getLastRow();
-    var rusRange = rus.getRange(2, 1, rusLr, 1);
-    var rusArray = rusRange.getValues();
-
-    for (row = 0; row < rusArray.length; row++) {
-      for (column = 0; column < rusArray[row].length; column++) {
-        rusFlat.push(rusArray[row][column]);
-      }
-    }
-    return rusFlat;
-  }
-
-  var rusOned = flatten_rus();
-  rusOned.pop(); //removes the last item of the array since it is a blank item
-  var rusLr1 = rus.getLastRow();
-  var rusRange = rus.getRange(2, 1, rusLr1, 1);
-
-
+  //creating a 1d arr of rus application IDs
+  var rusOned = flatten_arr(rusArray);
+  //removes the last item of the array since it is a blank item
+  rusOned.pop();
   //finding the original information looping and pasting
-  //not exactly working
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
-      var rusLr = rus.getLastRow();
-      var rusStartRow = rusRange.getRow();
       var rusRow = (i + rusStartRow);
       var tpslIndex = tpslOned.indexOf(rusOned[i]);
       var tpslRow = (tpslIndex + tpslStartRow);
@@ -366,40 +228,22 @@ function get_updates() {
 
   //remove filter on ppe
   ppe.getFilter().remove();
-  SpreadsheetApp.getUi().alert('Updates have been pulled');
+  ui.alert('Updates have been pulled.');
 }
 
 function push_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-//rus sheet vars and functions
+  //rus sheet vars and functions
   var rus = ss.getSheetByName('Review Updates');
   var rusLr = rus.getLastRow();
   var rusLc = rus.getLastColumn();
   var rusRange = rus.getRange(2, 1, rusLr, 1);
   var rusArray = rusRange.getValues();
   var rusStartRow = rusRange.getRow();
-
-
+  var rusTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
   //find gdpr section start column position
-  function flatten_rustca() {
-    var rustcaFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var rus = ss.getSheetByName('Review Updates');
-    var rusLc = rus.getLastColumn();
-    var findTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
-
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        rustcaFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return rustcaFlat
-  }
-
-  var rustcaOned = flatten_rustca();
+  var rustcaOned = flatten_arr(rusTitleColumnArr);
 
   for (var i = 0; i < rustcaOned.length; i++) {
     if (rustcaOned[i] === 'GDPR Data (Y,N)') {
@@ -410,54 +254,12 @@ function push_updates() {
     }
   }
   var rusGdprEndCol = 9;
+  //1D array of rus application IDs
+  var rusOned = flatten_arr(rusArray);
 
-  // Function that converts 2d array into 1d array
-  function flatten_rus() {
-    var rusFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var rus = ss.getSheetByName('Review Updates');
-    var rusLr = rus.getLastRow();
-    var rusRange = rus.getRange(2, 1, rusLr, 1);
-    var rusArray = rusRange.getValues();
-
-    for (row = 0; row < rusArray.length; row++) {
-      for (column = 0; column < rusArray[row].length; column++) {
-        rusFlat.push(rusArray[row][column]);
-      }
-    }
-    return rusFlat;
-  }
-
-  var rusOned = flatten_rus(); //1 Dimensional array of Column A of the PPE sheet
-
-//tpsl sheet vars and functions
-  var tpsl = ss.getSheetByName('1_Business Systems');
-  var tpslLr = tpsl.getLastRow();
-  var tpslLc = tpsl.getLastColumn();
-  var tpslRange = tpsl.getRange(4, 1, tpslLr, 1);
-  var tpslArray = tpslRange.getValues();
-  var tpslStartRow = tpslRange.getRow();
-
+  //1D array of TPSL header column values
+  var tcaOned = flatten_arr(tpslTitleColumnArr);
   //find gdpr section start column
-  function flatten_tca() {
-    var tcaFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tpsl = ss.getSheetByName('1_Business Systems');
-    var tpslLc = tpsl.getLastColumn();
-    var findTitleColumnArr =tpsl.getRange(2, 1, 1, tpslLc).getValues();
-
-    for (row = 0; row < findTitleColumnArr.length; row++) {
-      for (column = 0; column < findTitleColumnArr[row].length; column++) {
-        tcaFlat.push(findTitleColumnArr[row][column]);
-      }
-    }
-    return tcaFlat
-  }
-
-  var tcaOned = flatten_tca();
-
   for (var i = 0; i < tcaOned.length; i++) {
     if (tcaOned[i] === 'GDPR Data (Y,N)') {
       var tpslGdprBegCol = i + 1; //add one because arrays start at 0 not 1
@@ -466,56 +268,21 @@ function push_updates() {
       continue;
     }
   }
-
   var tpslGdprEndCol = 9;
 
-// Function that converts 2d array into 1d array
-  function flatten_tpsl() {
-    var tpslFlat = [];
-    var row, column;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tpsl = ss.getSheetByName('1_Business Systems');
-    var tpslLr = tpsl.getLastRow();
-    var tpslRange = tpsl.getRange(4, 1, tpslLr, 1);
-    var tpslArray = tpslRange.getValues();
+  //1D arr of tpsl application IDs
+  var tpslOned = flatten_arr(tpslArray);
 
-    for (row = 0; row < tpslArray.length; row++) {
-      for (column = 0; column < tpslArray[row].length; column++) {
-        tpslFlat.push(tpslArray[row][column]);
-      }
-    }
-    return tpslFlat;
-  }
-
-  var tpslOned = flatten_tpsl(); //1 Dimensional array of Column A of the PPE sheet
-
-//x
-
-//create an array of the updates column and find row position and delete the ones that dont equal y
-//the updates column needs to be the last column in the sheet
-function flatten_rus_updates_col_arr() {
-  var rusColUpdatesFlat = [];
-  var row, column;
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var rus = ss.getSheetByName('Review Updates');
+  //create an array of the updates column and find row position and delete the ones that dont equal y
+  //the updates column needs to be the last column in the sheet
   var rusLr2 = rus.getLastRow();
   var rusLcIsUpdatesCol = rus.getLastColumn();
   var rusUpdatesArr = rus.getRange(2, rusLcIsUpdatesCol, rusLr2, 1).getValues();
 
-  for (row = 0; row < rusUpdatesArr.length; row++) {
-    for (column = 0; column < rusUpdatesArr[row].length; column++) {
-      rusColUpdatesFlat.push(rusUpdatesArr[row][column]);
-    }
-  }
-  return rusColUpdatesFlat
-}
-
-var rusUpdatesArrOned = flatten_rus_updates_col_arr();
+  var rusUpdatesArrOned = flatten_arr(rusUpdatesArr);
 
 
-// BEGINNING OF LOOK UP AND REPLACE
-//Use same setup as below to create add the below to an existing 'change log' sheet
-
+  // BEGINNING OF LOOK UP AND REPLACE
   for (var i = 0; i < rusOned.length; i++) {
     if (rusUpdatesArrOned[i] == 'Y') {
       if (tpslOned.indexOf(rusOned[i]) > -1) {
