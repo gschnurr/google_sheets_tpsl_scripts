@@ -1,6 +1,5 @@
 /** @OnlyCurrentDoc */
 
-
 function onOpen(e) {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();

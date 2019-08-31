@@ -369,39 +369,6 @@ function get_updates() {
   SpreadsheetApp.getUi().alert('Updates have been pulled');
 }
 
-//this function is meant to check user authentication before running the push update function as well as sending an alert email that it has been run
-function pp_push_updates_wrapper() {
-
-  var authorizedUsers = ['gibson.schnurr@izettle.com', 'linn.andersson@izettle.com', 'josefin.eklund@izettle.com', 'maaike.gerritse@izettle.com', 'markus.kanerva@izettle.com', 'roxanne.baumann@izettle.com', 'shumel.rahman@izettle.com'];
-  var currentUser = Session.getActiveUser().getEmail();
-  var numberOfAuthUsers = (authorizedUsers.length - 1);
-
-  for (var i = 0; i < authorizedUsers.length; i++) {
-    if (currentUser == authorizedUsers[i]) {
-      var ui = SpreadsheetApp.getUi();
-      var response = ui.alert('WARNING: Google Sheets is set to run the push_updates macro. This macro will overwrite existing data in the TPSL document. Are sure you want to continue with this Macro?', ui.ButtonSet.YES_NO);
-      if (response == ui.Button.NO) {
-        return;
-      }
-      push_updates();
-      MailApp.sendEmail('gibson.schnurr@izettle.com',
-                'TPSL PP Updates Push',
-                'The push updates macro has been run. The running user was ' + currentUser + '.');
-      SpreadsheetApp.getUi().alert('Updates have been pushed.');
-      break;
-    }
-    else if (i < numberOfAuthUsers) {
-      continue;
-    }
-    else if (i == numberOfAuthUsers) {
-      MailApp.sendEmail('gibson.schnurr@izettle.com',
-                'Unauthorized Macro Attempt - Push Updates',
-                currentUser + ' attempted to run the push updates macro.');
-      SpreadsheetApp.getUi().alert('ERROR: You are not listed as an authorized user of this macro. Please contact Gibson to add you to the list of authorized users');
-    }
-  }
-}
-
 function push_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();

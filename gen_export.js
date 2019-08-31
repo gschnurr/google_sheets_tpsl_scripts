@@ -13,15 +13,6 @@ function gen_export_ins() {
   SpreadsheetApp.getUi().showSidebar(htmlOutput);
 }
 
-function gen_export_wrapper() {
-  var currentUser = Session.getActiveUser().getEmail();
-  gen_export();
-  MailApp.sendEmail('gibson.schnurr@izettle.com',
-            'General Export Created',
-            'The general export macro was run. The running user was ' + currentUser + '.');
-  SpreadsheetApp.getUi().alert('Export Created, Please check your google sheet files for the Generic Export with Todays Date');
-}
-
 function gen_export() {
 
   //general variables
@@ -117,28 +108,6 @@ function gen_export() {
 
   spreadsheet.deleteSheet(genX);
 };
-
-function clean_export_wrapper() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var spreadsheetName = spreadsheet.getName();
-  var currentUser = Session.getActiveUser().getEmail();
-
-  if (spreadsheetName == 'TPSL 2.0') {
-    SpreadsheetApp.getUi().alert('Error: this macro cannot be run in the master TPSL document, please run this only in your generated export.');
-    return;
-  }
-
-  var ui = SpreadsheetApp.getUi();
-  var response = ui.alert('WARNING: Google Sheets is set to run the clean_export macro. Confirm you are not in the Master TPSL document, this macro should only be run in generated exports. Are sure you want to continue with this Macro?', ui.ButtonSet.YES_NO);
-  if (response == ui.Button.NO) {
-    return;
-  }
-  clean_export();
-  MailApp.sendEmail('gibson.schnurr@izettle.com',
-            'General Export Cleaned',
-            'The clean export macro was run on ' + spreadsheetName + '. The running user was ' + currentUser + '.');
-}
 
 function clean_export() {
   var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
