@@ -25,12 +25,35 @@ function pp_push_updates_wrapper() {
 }
 
 function gen_export_wrapper() {
-  gen_export();
-  MailApp.sendEmail('gibson.schnurr@izettle.com',
-            'General Export Created',
-            'The general export macro was run. The running user was ' + currentUser + '.');
-
-  ui.alert('Export Created, Please check your google sheet files for the Generic Export with Todays Date');
+  //Checking if any columns have been chosen for export
+  //it does not matter if the same column has been chosen multiple times
+  var numExpCols = 0;
+  for (var i = 0; i < expGenColumnArr.length; i++) {
+    if (expGenColumnArr[i] != '') {
+      ++numExpCols;
+      continue;
+    }
+    else if (expGenColumnArr[i] == '' && i != (expGenColumnArr.length - 1)) {
+      continue;
+    }
+    else if (i == (expGenColumnArr.length - 1) && numExpCols != 0) {
+      gen_export();
+      MailApp.sendEmail('gibson.schnurr@izettle.com',
+                'General Export Created',
+                'The general export macro was run successfully. The running user was ' + currentUser + '.');
+      ui.alert('Export Created, Please check your google sheet files for the Generic Export with Todays Date.');
+    }
+    else if (i == (expGenColumnArr.length - 1) && numExpCols == 0) {
+      ui.alert('Whoops! You have not selected any columns to export. Please select at least one column.');
+      expGen.activate();
+    }
+    else {
+      MailApp.sendEmail('gibson.schnurr@izettle.com',
+                'General Export Complete Failure',
+                'The general export wrapper failed to run the macro and was forced to the final else, which should not happen under any reasonable explanation. The running user was ' + currentUser + '.');
+      ui.alert('Whoops something went wrong! Your macro administrator has been notified via email. Please confirm that your export columns have values.');
+    }
+  }
 }
 
 function clean_export_wrapper() {

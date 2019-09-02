@@ -35,7 +35,6 @@ function gen_export() {
   //deleting un-needed columns
   var arrAdj = 1;
 
-  var expGenColumnArr = expGen.getRange(3, 1, expGenLr, 1).getValues();
   var expGenOned = flatten_arr(expGenColumnArr);
 
   var genXColumnArr = genX.getRange(1, 1, 1, genXLc).getValues();
