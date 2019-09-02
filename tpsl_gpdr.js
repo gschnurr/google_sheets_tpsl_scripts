@@ -202,6 +202,8 @@ function get_updates() {
   //finding the original information looping and pasting
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
+      var rusLr = rus.getLastRow();
+      var rusStartRow = rusRange.getRow();
       var rusRow = (i + rusStartRow);
       var tpslIndex = tpslOned.indexOf(rusOned[i]);
       var tpslRow = (tpslIndex + tpslStartRow);
