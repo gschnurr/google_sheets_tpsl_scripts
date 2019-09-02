@@ -10,3 +10,16 @@ function flatten_arr(targetArr) {
   }
   return flatArr
 }
+
+function find_col(tleColFlatArr, colToFind) {
+  var colPos;
+  for (var i = 0; i < tleColFlatArr.length; i++) {
+    if (tleColFlatArr[i] == colToFind) {
+      var colPos = i + 1; //add one because arrays start at 0 not 1
+    }
+    else {
+      continue;
+    }
+  }
+  return colPos;
+}
