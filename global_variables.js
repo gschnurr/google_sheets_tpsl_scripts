@@ -30,6 +30,10 @@ var ppeColsArr = ['SL-ID', 'Application', 'Supplier (Third Party Vendor)', 'Appl
 'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
 'Headquarter location'];
 
+var gdprWizTColArr = ['Business System Owner', 'GDPR Data (Y,N)', 'Employee Data', 'End Customer Data', 'Merchant Data',
+'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
+'Headquarter location'];
+
 //User
 var authorizedUsers = ['gibson.schnurr@izettle.com', 'linn.andersson@izettle.com',
 'josefin.eklund@izettle.com', 'maaike.gerritse@izettle.com', 'markus.kanerva@izettle.com',
