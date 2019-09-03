@@ -19,17 +19,8 @@ function tpsl_pp_extract() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-
   //finding gpdr column start position
-  for (var i = 0; i < tcaOned.length; i++) {
-    if (tcaOned[i] === 'GDPR Data (Y,N)') {
-      var gdprColPos = i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
-
+  var gdprColPos = find_col(tcaOned, 'GDPR Data (Y,N)');
   //filter tpsl sheet on gdpr column
   tpslAllCells.activate();
   tpsl.setCurrentCell(spreadsheet.getRange('A1'));
@@ -117,14 +108,7 @@ function get_updates() {
   var parOned = flatten_arr(ppeTitleColumnArr);
 
   //find the updates column and create a variable with the integer of the column position
-  for (var i = 0; i < parOned.length; i++) {
-    if (parOned[i] === 'Updates? (Y/N) If yes please make the updates in this sheet') {
-      var updatesColPos = i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
+  var updatesColPos = find_col(parOned, 'Updates? (Y/N) If yes please make the updates in this sheet');
 
   //filter ppe sheet on updates column
   ppeAllCells.activate();
@@ -159,17 +143,10 @@ function get_updates() {
     }
   }
   //get originals
+
   //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-
-  for (var i = 0; i < tcaOned.length; i++) {
-    if (tcaOned[i] === 'GDPR Data (Y,N)') {
-      var tpslGdprBegCol = i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
+  var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
   //number of columns in the GDPR column set
   var tpslGdprEndCol = 9;
   //A 1d array of the IDs in the tpsl sheet
@@ -182,17 +159,9 @@ function get_updates() {
   var rusRange = rus.getRange(2, 1, rusLr, 1);
   var rusArray = rusRange.getValues();
   var rusStartRow = rusRange.getRow();
-  // creating a 1d arr of column headers in rus
+  // creating a 1d arr of column headers in rus and identification of GDPR column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
-  //identification of GDPR column position
-  for (var i = 0; i < rustcaOned.length; i++) {
-    if (rustcaOned[i] === 'GDPR Data (Y,N)') {
-      var rusGdprBegCol= i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
+  var rusGdprBegCol = find_col(rustcaOned, 'GDPR Data (Y,N)');
   //number of columns in the GDPR column set
   var rusGdprEndCol = 9;
   //creating a 1d arr of rus application IDs
@@ -246,30 +215,14 @@ function push_updates() {
   var rusTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
   //find gdpr section start column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
-
-  for (var i = 0; i < rustcaOned.length; i++) {
-    if (rustcaOned[i] === 'GDPR Data (Y,N)') {
-      var rusGdprBegCol= i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
+  var rusGdprBegCol = find_col(rustcaOned, 'GDPR Data (Y,N)');
   var rusGdprEndCol = 9;
   //1D array of rus application IDs
   var rusOned = flatten_arr(rusArray);
 
-  //1D array of TPSL header column values
+  //1D array of TPSL header column values and find gdpr section start column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-  //find gdpr section start column
-  for (var i = 0; i < tcaOned.length; i++) {
-    if (tcaOned[i] === 'GDPR Data (Y,N)') {
-      var tpslGdprBegCol = i + 1; //add one because arrays start at 0 not 1
-    }
-    else {
-      continue;
-    }
-  }
+  var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
   var tpslGdprEndCol = 9;
 
   //1D arr of tpsl application IDs
