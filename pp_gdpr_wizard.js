@@ -27,6 +27,8 @@ function pp_gdpr_wizard() {
 
   var ppeOned = flatten_arr(ppeTitleColumnArr);
 
+  var recordUpdatesColPos = find_col(ppeOned, 'Updates? (Y/N) If yes please make the updates in this sheet');
+
   var busSysOwnColPos = find_col(ppeOned, 'Business System Owner');
   var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
   var bsoOned = flatten_arr(busSysOwnerArr);
@@ -94,6 +96,7 @@ function pp_gdpr_wizard() {
       }
       else {
         ppe.getRange(wizUserAppsRowNumArr[u], gdprWizColPosArr[v], 1, 1).setValue(wizUserResp);
+        ppe.getRange(wizUserAppsRowNumArr[u], recordUpdatesColPos, 1, 1).setValue('Y');
       }
     }
   }
