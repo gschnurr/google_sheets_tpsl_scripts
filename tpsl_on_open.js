@@ -19,8 +19,17 @@ function onOpen(e) {
       .addSeparator()
       .addItem('Push Updates', 'pp_push_updates_wrapper')
       .addToUi();
+  //PP Wizard Macro
+    ui.createMenu('GDPR Update Wizard')
+      .addItem('Information', 'pp_wizard_information_prompt')
+      .addSeparator()
+      .addItem('Run Wizard', 'pp_gdpr_wizard_wrapper')
+      .addToUi();
   //Checking if clean export should be run which is defined first by spreadsheet name then by number sheets
   if (spreadsheetName == exportName && sheets.length > 2) {
     clean_export_wrapper();
+  }
+  if (sheetName == 'PayPal Extract') {
+    pp_wizard_information_prompt();
   }
 };

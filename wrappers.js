@@ -1,3 +1,13 @@
+function pp_gdpr_wizard_wrapper(){
+  if (sheetName == 'PayPal Extract') {
+    pp_gdpr_wizard();
+  }
+  else {
+    ui.alert('You can not run the GDPR Wizard in this sheet, please move to the appopriate sheet to run the wizard.');
+  }
+}
+
+
 function pp_push_updates_wrapper() {
   for (var i = 0; i < authorizedUsers.length; i++) {
     if (currentUser == authorizedUsers[i]) {
