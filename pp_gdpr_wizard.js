@@ -73,8 +73,6 @@ function pp_gdpr_wizard() {
       else {
         currentInfoCheck = currentInfo;
       }
-
-
       var wizUserResp = Browser.inputBox(appToUpdate,
         'Please update the information relating to the ' + colTitle + ' field' +
         '. The description of this field is: ' + colDescription +
