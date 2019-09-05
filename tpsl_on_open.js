@@ -29,7 +29,4 @@ function onOpen(e) {
   if (spreadsheetName == exportName && sheets.length > 2) {
     clean_export_wrapper();
   }
-  if (sheetName == 'PayPal Extract') {
-    pp_wizard_information_prompt();
-  }
 };
