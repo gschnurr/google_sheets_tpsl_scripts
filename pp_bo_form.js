@@ -38,148 +38,176 @@ function pp_form_gen() {
   var ppeLc = ppe.getLastColumn();
   var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
 
-  //this will need to be phased out after testing
-  var currentBoInLoop = Session.getActiveUser().getEmail();
-
   var ppeOned = flatten_arr(ppeTitleColumnArr);
 
   var busSysOwnColPos = find_col(ppeOned, 'Business System Owner');
   var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
   var bsoOned = flatten_arr(busSysOwnerArr);
+  bsoOned.pop();
 
   var appNameColPos = find_col(ppeOned, 'Application');
   var appNameArr = ppe.getRange(2, appNameColPos, ppeLr, 1).getValues();
   var anOned = flatten_arr(appNameArr);
 
   //this is an array of the row number of the applications owned by the currentBoInLoop
-  var boAppsRowNumArr = [];
-  var boAppsArr = [];
-  for (var f = 0; f < bsoOned.length; f++) {
-    if (bsoOned[f] == currentBoInLoop) {
-      var cwuAppRow = f + 2;
-      boAppsRowNumArr.push(cwuAppRow);
-      var appNameCell = ppe.getRange(cwuAppRow, appNameColPos, 1, 1).getValue();
-      boAppsArr.push(appNameCell);
-    }
-    else {
-      continue;
-    }
-  }
   //creates an arr of all col pos of columns to be updated
   var gdprBoColPosArr = [];
   for (var c = 0; c < gdprBoTColArr.length; c++) {
     var gdprBoColPos = find_col(ppeOned, gdprBoTColArr[c]);
     gdprBoColPosArr.push(gdprBoColPos);
   }
-//start of the loops for creating the forma
-//need to create a loop to loop through the BOs which will take up the line below
-  var userUpdatesForm = FormApp.create(currentBoInLoop + ' Applications');
-    for (var u = 0; u < boAppsRowNumArr.length; u++) {
-      var appToUpdate = boAppsArr[u];
-      userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
-      for (var v = 0; v < gdprBoColPosArr.length; v++) {
-        var colTitle = gdprBoTColArr[v];
-        var colHelpText = ppe.getRange(1, gdprBoColPosArr[v], 1, 1).getNotes();
-        var currentInfo = ppe.getRange(boAppsRowNumArr[u], gdprBoColPosArr[v], 1, 1).getValue();
-        var currentInfoCheck;
-        if (currentInfo == '') {
-        currentInfoCheck = '<BLANK>';
-        }
-        else {
-          currentInfoCheck = currentInfo;
-        }
-//create an if statement here depending on the column if it is yes no make it a yes know response
-        if (colTitle == 'GDPR Data (Y,N)') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices([
-                multiChoice.createChoice('Y'),
-                multiChoice.createChoice('N'),
-              ]);
-        }
-        else if (colTitle == 'Employee Data') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices([
-                multiChoice.createChoice('Yes'),
-                multiChoice.createChoice('No'),
-              ]);
-        }
-        else if (colTitle == 'End Customer Data') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices([
-                multiChoice.createChoice('Yes'),
-                multiChoice.createChoice('No'),
-              ]);
-        }
-        else if (colTitle == 'Merchant Data') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices([
-                multiChoice.createChoice('Yes'),
-                multiChoice.createChoice('No'),
-              ]);
-        }
-        else if (colTitle == 'Vendor Category') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-          var mcOptions = [];
-          for (var mc = 0; mc < vendorCatArr.length; mc++) {
-            var vcChoice = multiChoice.createChoice(vendorCatArr[mc]);
-            mcOptions.push(vcChoice);
+  //an array of the bo's who have been looped through to prevent creating multiple forms for one user
+  var boFormComArr = ['placeholder', '""'];
+  //loop through the business owners arr
+  for (var b = 0; b < bsoOned.length; b++) {
+    Logger.log('BOArry Loop, BO = ' + bsoOned[b] + ' b = ' + b);
+    //check the current iteration of the bo arr against the bo complete? arr
+    for (var c = 0; c < boFormComArr.length; c++) {
+      Logger.log('BOs that have been used are ' + boFormComArr);
+      // if the first current item in the completed array = the current bo then go to the next bo
+      if (boFormComArr[c] == bsoOned[b]) {
+        Logger.log('BOCompArr Loop - BO Has already been used, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+        continue;
+      }
+      else if (boFormComArr[c] != bsoOned[b] && c != (boFormComArr.length - 1)){
+        Logger.log('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+        continue;
+      }
+      else if (boFormComArr[c] != bsoOned[b] && c == (boFormComArr.length - 1)) {
+        Logger.log('BOCompArr Loop - BO Not Found, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+        boFormComArr.unshift(bsoOned[b]);
+        var currentBoInLoop = bsoOned[b];
+        var userUpdatesForm = FormApp.create(currentBoInLoop + ' Applications');
+        //this is an array of the row number of the applications owned by the currentBoInLoop
+        var boAppsRowNumArr = [];
+        var boAppsArr = [];
+        for (var f = 0; f < bsoOned.length; f++) {
+          if (bsoOned[f] == currentBoInLoop) {
+            var cwuAppRow = f + 2;
+            boAppsRowNumArr.push(cwuAppRow);
+            var appNameCell = ppe.getRange(cwuAppRow, appNameColPos, 1, 1).getValue();
+            boAppsArr.push(appNameCell);
           }
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices(mcOptions);
-        }
-        else if (colTitle == 'Purpose') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-          var mcOptions = [];
-          for (var mc = 0; mc < purposeCatArr.length; mc++) {
-            var purpChoice = multiChoice.createChoice(purposeCatArr[mc]);
-            mcOptions.push(purpChoice);
+          else {
+            continue;
           }
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices(mcOptions);
         }
-        else if (colTitle == 'Data Disclosed') {
-          var textItem = userUpdatesForm.addTextItem().setRequired(false);
-            textItem.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+        Logger.log('Form For ' + bsoOned[b] + ' created ' + bsoOned[b] + ' has ' + boAppsArr.length + ' number of Applications');
+        for (var u = 0; u < boAppsRowNumArr.length; u++) {
+          var appToUpdate = boAppsArr[u];
+          userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
+          Logger.log('the first application is ' + appToUpdate);
+          for (var v = 0; v < gdprBoColPosArr.length; v++) {
+            var colTitle = gdprBoTColArr[v];
+            var colHelpText = ppe.getRange(1, gdprBoColPosArr[v], 1, 1).getNotes();
+            var currentInfo = ppe.getRange(boAppsRowNumArr[u], gdprBoColPosArr[v], 1, 1).getValue();
+            var currentInfoCheck;
+            if (currentInfo == '') {
+            currentInfoCheck = '<BLANK>';
+            }
+            else {
+              currentInfoCheck = currentInfo;
+            }
+    //create an if statement here depending on the column if it is yes no make it a yes know response
+            if (colTitle == 'GDPR Data (Y,N)') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices([
+                    multiChoice.createChoice('Y'),
+                    multiChoice.createChoice('N'),
+                  ]);
+            }
+            else if (colTitle == 'Employee Data') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices([
+                    multiChoice.createChoice('Yes'),
+                    multiChoice.createChoice('No'),
+                  ]);
+            }
+            else if (colTitle == 'End Customer Data') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices([
+                    multiChoice.createChoice('Yes'),
+                    multiChoice.createChoice('No'),
+                  ]);
+            }
+            else if (colTitle == 'Merchant Data') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices([
+                    multiChoice.createChoice('Yes'),
+                    multiChoice.createChoice('No'),
+                  ]);
+            }
+            else if (colTitle == 'Vendor Category') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+              var mcOptions = [];
+              for (var mc = 0; mc < vendorCatArr.length; mc++) {
+                var vcChoice = multiChoice.createChoice(vendorCatArr[mc]);
+                mcOptions.push(vcChoice);
+              }
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices(mcOptions);
+            }
+            else if (colTitle == 'Purpose') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+              var mcOptions = [];
+              for (var mc = 0; mc < purposeCatArr.length; mc++) {
+                var purpChoice = multiChoice.createChoice(purposeCatArr[mc]);
+                mcOptions.push(purpChoice);
+              }
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices(mcOptions);
+            }
+            else if (colTitle == 'Data Disclosed') {
+              var textItem = userUpdatesForm.addTextItem().setRequired(false);
+                textItem.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+            }
+            else if (colTitle == 'Data shared with third party? (Y,N,N/A)') {
+              var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
+                multiChoice.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+                  .setChoices([
+                    multiChoice.createChoice('Yes'),
+                    multiChoice.createChoice('No'),
+                    multiChoice.createChoice('N/A'),
+                  ]);
+            }
+            else if (colTitle == 'Headquarter location') {
+              var textItem = userUpdatesForm.addTextItem().setRequired(false);
+                textItem.setTitle(colTitle)
+                  .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
+            }
+          }
+          Logger.log('All items are added for ' + appToUpdate);
         }
-        else if (colTitle == 'Data shared with third party? (Y,N,N/A)') {
-          var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
-            multiChoice.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-              .setChoices([
-                multiChoice.createChoice('Yes'),
-                multiChoice.createChoice('No'),
-                multiChoice.createChoice('N/A'),
-              ]);
-        }
-        else if (colTitle == 'Headquarter location') {
-          var textItem = userUpdatesForm.addTextItem().setRequired(false);
-            textItem.setTitle(colTitle)
-              .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
-        }
+        Logger.log('All applications are added to the form. ' + u + ' Number of applications were added. ' + 'Email will send');
+        ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
+          .forForm(userUpdatesForm)
+          .onFormSubmit()
+          .create();
+        var responseUrl = userUpdatesForm.getPublishedUrl();
+          var emailTo = currentBoInLoop;
+          var subject = 'test';
+          var options = {}
+          options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
+          MailApp.sendEmail(emailTo, subject, '', options);
+        break;
+      }
+      else {
+        ui.alert('something messed up');
       }
     }
-
-  ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
-    .forForm(userUpdatesForm)
-    .onFormSubmit()
-    .create();
-  var responseUrl = userUpdatesForm.getPublishedUrl();
-    var emailTo = currentBoInLoop;
-    var subject = 'test';
-    var options = {}
-    options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
-    MailApp.sendEmail(emailTo, subject, '', options);
+  }
 }
 
 
@@ -187,6 +215,8 @@ function on_Form_Sub_Bo_Trigger(e) {
   // get the trigger id passed from the event and use that to get the form id
   var triggerId = e.triggerUid;
   var formId = get_file_by_trigger_id(triggerId);
+  var form = FormApp.openById(formId);
+  var test = get_form_responses_formatted_Arr(form);
   // the below might not work depending on how drive orders its files
   // begin searching through google drive files for files containing the below text in the title
   var files = DriveApp.searchFiles('title contains "PayPal Extract"');
@@ -201,7 +231,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   var ssId = ppExtracts[latestPpSsValue];
   var ss = SpreadsheetApp.openById(ssId);
   var ppe = ss.getSheetByName('PayPal Extract');
-  MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', 'place test text here');
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
 }
 
 function get_file_by_trigger_id(triggerId) {
@@ -213,8 +243,10 @@ function get_file_by_trigger_id(triggerId) {
   }
 }
 
-function get_form_responses_formatted() {
-
+// ideally this function will return an array of [[formitem, formresponse]] not sure actually might need to find a way to match things up and get a concise return
+function get_form_responses_formatted_Arr(form) {
+  var itemArr = form.getItems();
+  return itemArr[0].getId();
 }
 
 function update_app_info_in_ss() {
