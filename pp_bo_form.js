@@ -57,24 +57,25 @@ function pp_form_gen() {
     gdprBoColPosArr.push(gdprBoColPos);
   }
   //an array of the bo's who have been looped through to prevent creating multiple forms for one user
-  var boFormComArr = ['placeholder', '""'];
+  var boFormComArr = ['placeholder', ''];
   //loop through the business owners arr
   for (var b = 0; b < bsoOned.length; b++) {
     Logger.log('BOArry Loop, BO = ' + bsoOned[b] + ' b = ' + b);
+    Logger.log(boFormComArr.length + ' number of forms have been sent.')
     //check the current iteration of the bo arr against the bo complete? arr
     for (var c = 0; c < boFormComArr.length; c++) {
       Logger.log('BOs that have been used are ' + boFormComArr);
       // if the first current item in the completed array = the current bo then go to the next bo
       if (boFormComArr[c] == bsoOned[b]) {
         Logger.log('BOCompArr Loop - BO Has already been used, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
-        continue;
+        break;
       }
       else if (boFormComArr[c] != bsoOned[b] && c != (boFormComArr.length - 1)){
         Logger.log('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
         continue;
       }
       else if (boFormComArr[c] != bsoOned[b] && c == (boFormComArr.length - 1)) {
-        Logger.log('BOCompArr Loop - BO Not Found, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+        Logger.log('BOCompArr Loop - BO Not Found, create form. BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
         boFormComArr.unshift(bsoOned[b]);
         var currentBoInLoop = bsoOned[b];
         var userUpdatesForm = FormApp.create(currentBoInLoop + ' Applications');
@@ -92,7 +93,7 @@ function pp_form_gen() {
             continue;
           }
         }
-        Logger.log('Form For ' + bsoOned[b] + ' created ' + bsoOned[b] + ' has ' + boAppsArr.length + ' number of Applications');
+        Logger.log('Form For ' + bsoOned[b] + ' created ' + bsoOned[b] + ' has ' + boAppsArr.length + ' Applications');
         for (var u = 0; u < boAppsRowNumArr.length; u++) {
           var appToUpdate = boAppsArr[u];
           userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
@@ -190,7 +191,7 @@ function pp_form_gen() {
           }
           Logger.log('All items are added for ' + appToUpdate);
         }
-        Logger.log('All applications are added to the form. ' + u + ' Number of applications were added. ' + 'Email will send');
+        Logger.log('All applications are added to the form. ' + u + ' applications were added.'');
         ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
           .forForm(userUpdatesForm)
           .onFormSubmit()
@@ -201,10 +202,11 @@ function pp_form_gen() {
           var options = {}
           options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
           MailApp.sendEmail(emailTo, subject, '', options);
+        Logger.log('Email sent');
         break;
       }
       else {
-        ui.alert('something messed up');
+        ui.alert('OOPs: something went wrong. Please contact and administrator.');
       }
     }
   }
