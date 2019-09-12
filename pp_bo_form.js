@@ -1,10 +1,3 @@
-/*
-1) add safety in place to make sure that the sheetID in the response function is updated
-2) create a function to run in the response function that will grab the answers and place them where they need to be in the spreadsheet
-
-**/
-
-
 
 function pp_form_gen() {
 
