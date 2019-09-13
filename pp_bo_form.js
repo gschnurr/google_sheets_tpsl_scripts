@@ -1,12 +1,13 @@
 
 function pp_form_gen() {
 
+//need to seperate variables into static and dynamic
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
   var ppe = ss.getSheetByName('PayPal Extract');
-  var ppeLr = ppe.getLastRow();
-  var ppeLc = ppe.getLastColumn();
+  var ppeLr = ppe.getLastRow(); //dynamic
+  var ppeLc = ppe.getLastColumn(); //dynamic
   var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
 
   //this array contains the choices for vendor category
@@ -35,12 +36,12 @@ function pp_form_gen() {
 
   //this loops checks all of the current sheets in the spreadsheet for the spreadsheet savePointSheet
   var savePointSheet = 'PayPal Extract Save';
-  Logger.log('All static variables have been initialized.')
+  Logger.log('All static variables have been initialized.');
 
   for (var s = 0; s < sheets.length; s++){
     curSheetName = sheets[s].getSheetName();
     if (curSheetName == savePointSheet) {
-      Logger.log('Sheet with sheet name ' + savePointSheet + ' already exists.')
+      Logger.log('Sheet with sheet name ' + savePointSheet + ' already exists.');
       break;
     }
     else if (curSheetName != savePointSheet && s != (sheets.length - 1)) {
@@ -55,27 +56,28 @@ function pp_form_gen() {
       ppeSave.getRange('A1').activate();
       ppe.getRange(1, 1, 1, ppeLc).copyTo(ppeSave.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
       ppeSave.setFrozenRows(1);
-      Logger.log('Sheet with sheet name ' + savePointSheet + ' created and formatted.')
+      Logger.log('Sheet with sheet name ' + savePointSheet + ' created and formatted.');
     }
     else {
       ui.alert('OOPs: something went wrong. Please contact and administrator.');
     }
   }
 
+  var ppeSave = ss.getSheetByName('PayPal Extract Save');
   var ppeSaveLr = ppeSave.getLastRow();
   var ppeSaveLc = ppeSave.getLastColumn();
   var ppeSaveLrPOne = ppeSaveLr + 1;
-  Logger.log('ppeSave variables initialized.')
+  Logger.log('ppeSave variables initialized.');
 
   //creates 1d array of the title row values for the ppe spreadsheet
   var ppeOned = flatten_arr(ppeTitleColumnArr);
-  Logger.log('PPE title row array created.')
+  Logger.log('PPE title row array created.');
   //finds the position of the business system owner column grabs all of the data in that column and creates a 1d array and removes the last blank value
   var busSysOwnColPos = find_col(ppeOned, 'Business System Owner');
   var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
   var bsoOned = flatten_arr(busSysOwnerArr);
   bsoOned.pop();
-  Logger.log('One dimensional BO array created.')
+  Logger.log('One dimensional BO array created.');
   //finds the application column and creates a 1d array of all the applications currently not used in this function
   var appNameColPos = find_col(ppeOned, 'Application');
   var appNameArr = ppe.getRange(2, appNameColPos, ppeLr, 1).getValues();
@@ -87,35 +89,61 @@ function pp_form_gen() {
     var gdprBoColPos = find_col(ppeOned, gdprBoTColArr[c]);
     gdprBoColPosArr.push(gdprBoColPos);
   }
-  Logger.log('GDPR Column positions to be updated from initial static array have been found.')
+  Logger.log('GDPR Column positions to be updated from initial static array have been found.');
+
   //an array of the bo's who have been looped through to prevent creating multiple forms for one user
   var boFormComArr = [''];
-  //loop through the business owners arr
-  for (var b = 0; b < bsoOned.length; b++) {
-    Logger.log('BOArry Loop, BO = ' + bsoOned[b] + ' b = ' + b);
-    Logger.log((boFormComArr.length - 1) + ' forms have been sent.')
-    //check the current iteration of the bo arr against the bo complete? arr
+  var bson = 0;
+  var activeTriggerPrompt = ui.prompt('How many active form response triggers are there for this script?').getResponseText();
+  var userInFormsSentNum = Number(activeTriggerPrompt); // this will be the response from a prompt about the numebr of active triggers left if there is a save point
+  var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //needs to be inside loop the as well this is the first initilization
+//beginning of actual function
+  while (numFormsSent < 26) {
+    var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
+    Logger.log('Forms sent = ' + numFormsSent + ' after calling the variable again in the while loop.');
+    //create the one dimensional array of all the business owners the BO column for this iteration
+    var ppeLr = ppe.getLastRow();
+    var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
+    var bsoOned = flatten_arr(busSysOwnerArr);
+    bsoOned.pop();
+
+    if (bsoOned.length > 0 && bson < bsoOned.length) {
+      var boToCheck = bsoOned[bson];
+      Logger.log('BOArry Loop prior to check, BO = ' + boToCheck);
+      Logger.log((boFormComArr.length - 1) + ' forms have been sent.');
+    }
+    else {
+      Logger.log('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '.');
+      ui.alert('OPERATION COMPLETE: There are no unique business system owners left.')
+      return;
+    }
     for (var c = 0; c < boFormComArr.length; c++) {
       Logger.log('BOs that have been used are ' + boFormComArr);
       // if the first current item in the completed array = the current bo then go to the next bo
-      if (boFormComArr[c] == bsoOned[b]) {
-        Logger.log('BOCompArr Loop - BO Has already been used, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+      if (boFormComArr[c] == boToCheck) {
+        Logger.log('BOCompArr Loop - BO Has already been used, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
+        bson++;
+        Logger.log('bson incrimented to ' + bson);
         break;
       }
-      else if (boFormComArr[c] != bsoOned[b] && c != (boFormComArr.length - 1)){
-        Logger.log('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
+      else if (boFormComArr[c] != boToCheck && c != (boFormComArr.length - 1)){
+        Logger.log('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
         continue;
       }
-      else if (boFormComArr[c] != bsoOned[b] && c == (boFormComArr.length - 1)) {
-        Logger.log('BOCompArr Loop - BO Not Found, create form. BO = ' + bsoOned[b] + ' c = ' + c + ' length = ' + boFormComArr.length);
-        boFormComArr.unshift(bsoOned[b]);
-        var currentBoInLoop = bsoOned[b];
-        var userUpdatesForm = FormApp.create(currentBoInLoop + ' Applications');
-        //this is an array of the row number of the applications owned by the currentBoInLoop
+      else if (boFormComArr[c] != boToCheck && c == (boFormComArr.length - 1)) {
+        Logger.log('BOCompArr Loop - BO Not Found, create form. BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
+        bson = 0;
+        Logger.log('bson reset to zero.')
+        //defining the currentBO Email as a variable and adding that BO to the already used array
+        var boOfCurFormCre = boToCheck;
+        boFormComArr.unshift(boOfCurFormCre);
+        var userUpdatesForm = FormApp.create(boOfCurFormCre + ' Applications');
+        //initial empty arrays for the currentBos app information
         var boAppsRowNumArr = [];
         var boAppsArr = [];
+        //push information into those arrays to be used to locate the current BOs applications via the below loop
         for (var f = 0; f < bsoOned.length; f++) {
-          if (bsoOned[f] == currentBoInLoop) {
+          if (bsoOned[f] == boOfCurFormCre) {
             var cwuAppRow = f + 2;
             boAppsRowNumArr.push(cwuAppRow);
             var appNameCell = ppe.getRange(cwuAppRow, appNameColPos, 1, 1).getValue();
@@ -125,7 +153,7 @@ function pp_form_gen() {
             continue;
           }
         }
-        Logger.log('Form For ' + bsoOned[b] + ' created ' + bsoOned[b] + ' has ' + boAppsArr.length + ' Applications');
+        Logger.log('Form For ' + boOfCurFormCre + ' created ' + boOfCurFormCre + ' has ' + boAppsArr.length + ' Applications');
         for (var u = 0; u < boAppsRowNumArr.length; u++) {
           var appToUpdate = boAppsArr[u];
           userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
@@ -141,7 +169,7 @@ function pp_form_gen() {
             else {
               currentInfoCheck = currentInfo;
             }
-    //create an if statement here depending on the column if it is yes no make it a yes know response
+            //create an if statement here depending on the column if it is yes no make it a yes know response
             if (colTitle == 'GDPR Data (Y,N)') {
               var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
                 multiChoice.setTitle(colTitle)
@@ -220,13 +248,42 @@ function pp_form_gen() {
                 textItem.setTitle(colTitle)
                   .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
             }
-          }
+          } //end of the loop for creating gdpr form elements
           Logger.log('All items are added for ' + appToUpdate);
-        }
+        } //end of the loop for currentBO applications loop
+        Logger.log('All applications are added to the form. ' + u + ' applications were added.');
+        ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
+          .forForm(userUpdatesForm)
+          .onFormSubmit()
+          .create();
+        var responseUrl = userUpdatesForm.getPublishedUrl();
+          var emailTo = boOfCurFormCre;
+          var subject = 'test';
+          var options = {}
+          options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
+          MailApp.sendEmail(emailTo, subject, '', options);
+        Logger.log('Email sent');
+        break;
+      } //end of the elseif for creating a new form for user not found in the check array
+      else {
+        ui.alert('OOPs: something went wrong. Please contact and administrator.');
+      } // end of the else right above this
+    } //end of the forloop for the check against boFormComArr
+    //delete and move should be placed here I think
+  } //end of the while loops
+  Logger.log('End of Function');
+} //end of the function
+
+
+
+
+
+
+
         /*
         this part is to delete the used rows and is currently underconstruction
         for (var f = 0; f < bsoOned.length; f++) {
-          if (bsoOned[f] == currentBoInLoop) {
+          if (bsoOned[f] == boOfCurFormCre) {
             var ppeSaveLr = ppeSave.getLastRow();
             var ppeSaveLc = ppeSave.getLastColumn();
             var ppeSaveLrPOne = ppeSaveLr + 1;
@@ -242,26 +299,6 @@ function pp_form_gen() {
           }
         }
         **/
-        Logger.log('All applications are added to the form. ' + u + ' applications were added.');
-        ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
-          .forForm(userUpdatesForm)
-          .onFormSubmit()
-          .create();
-        var responseUrl = userUpdatesForm.getPublishedUrl();
-          var emailTo = currentBoInLoop;
-          var subject = 'test';
-          var options = {}
-          options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
-          MailApp.sendEmail(emailTo, subject, '', options);
-        Logger.log('Email sent');
-        break;
-      }
-      else {
-        ui.alert('OOPs: something went wrong. Please contact and administrator.');
-      }
-    }
-  }
-}
 
 
 function on_Form_Sub_Bo_Trigger(e) {
