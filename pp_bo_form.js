@@ -1,4 +1,3 @@
-
 function pp_form_gen() {
 
 //need to seperate variables into static and dynamic
@@ -100,7 +99,7 @@ function pp_form_gen() {
 //beginning of actual function
   while (numFormsSent < 26) {
     var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
-    Logger.log('Forms sent = ' + numFormsSent + ' after calling the variable again in the while loop.');
+    Logger.log('Number of forms sent = ' + numFormsSent + '.');
     //create the one dimensional array of all the business owners the BO column for this iteration
     var ppeLr = ppe.getLastRow();
     var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
@@ -110,10 +109,11 @@ function pp_form_gen() {
     if (bsoOned.length > 0 && bson < bsoOned.length) {
       var boToCheck = bsoOned[bson];
       Logger.log('BOArry Loop prior to check, BO = ' + boToCheck);
-      Logger.log((boFormComArr.length - 1) + ' forms have been sent.');
     }
     else {
       Logger.log('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '.');
+      var compLogs = Logger.getLog();
+      MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', compLogs);
       ui.alert('OPERATION COMPLETE: There are no unique business system owners left.')
       return;
     }
@@ -258,7 +258,7 @@ function pp_form_gen() {
           .create();
         var responseUrl = userUpdatesForm.getPublishedUrl();
           var emailTo = boOfCurFormCre;
-          var subject = 'test';
+          var subject = 'Test - Please ignore this, this is just for testing purposes.';
           var options = {}
           options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
           MailApp.sendEmail(emailTo, subject, '', options);
@@ -271,7 +271,6 @@ function pp_form_gen() {
     } //end of the forloop for the check against boFormComArr
     //delete and move should be placed here I think
   } //end of the while loops
-  Logger.log('End of Function');
 } //end of the function
 
 
