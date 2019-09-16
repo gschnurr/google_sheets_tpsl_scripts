@@ -94,7 +94,6 @@ function pp_form_gen() {
   var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //needs to be inside loop the as well this is the first initilization
 //beginning of actual function
   while (numFormsSent < 20) {
-    var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
     Logger.log('Number of forms sent = ' + numFormsSent + '.');
     //create the one dimensional array of all the business owners the BO column for this iteration
     var ppeLr = ppe.getLastRow();
@@ -283,6 +282,8 @@ function pp_form_gen() {
             }
           }
         }
+        var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
+        Logger.log('Number of forms sent = ' + numFormsSent + '.');
         Logger.log('All applications for ' + boOfCurFormCre + ' have been deleted.');
         break;
       } //end of the elseif for creating a new form for user not found in the check array
@@ -291,6 +292,10 @@ function pp_form_gen() {
       } // end of the else right above this
     } //end of the forloop for the check against boFormComArr
   } //end of the while loops
+  Logger.log('The max number of triggers have been reached.');
+  var trigLimReachedLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', trigLimReachedLogs);
+  ui.alert('OPERATION COMPLETE/WARNING: Maximum number of triggers exceeded.');
 } //end of the function
 
 function on_Form_Sub_Bo_Trigger(e) {
