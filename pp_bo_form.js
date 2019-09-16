@@ -293,33 +293,6 @@ function pp_form_gen() {
   } //end of the while loops
 } //end of the function
 
-
-
-
-
-
-
-        /*
-        this part is to delete the used rows and is currently underconstruction
-        for (var f = 0; f < bsoOned.length; f++) {
-          if (bsoOned[f] == boOfCurFormCre) {
-            var ppeSaveLr = ppeSave.getLastRow();
-            var ppeSaveLc = ppeSave.getLastColumn();
-            var ppeSaveLrPOne = ppeSaveLr + 1;
-            var cwuAppRow = f + 2;
-            var ppeRowToCopy = ppe.getRange(cwuAppRow, 1, 1, ppeLc).getValues();
-            ppeSave.getRange(ppeSaveLrPOne, 1, 1, ppeSaveLc).setValues(ppeRowToCopy);
-            ppe.deleteRow(cwuAppRow);
-            var appNameCell = ppe.getRange(cwuAppRow, appNameColPos, 1, 1).getValue();
-            Logger.log(appNameCell + ' has been deleted from ppe and copied to ppeSave.');
-          }
-          else {
-            continue;
-          }
-        }
-        **/
-
-
 function on_Form_Sub_Bo_Trigger(e) {
   // get the trigger id passed from the event and use that to get the form id
   var triggerId = e.triggerUid;
