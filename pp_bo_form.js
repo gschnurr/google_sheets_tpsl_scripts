@@ -77,10 +77,6 @@ function pp_form_gen() {
   var bsoOned = flatten_arr(busSysOwnerArr);
   bsoOned.pop();
   Logger.log('One dimensional BO array created.');
-  //finds the application column and creates a 1d array of all the applications currently not used in this function
-  var appNameColPos = find_col(ppeOned, 'Application');
-  var appNameArr = ppe.getRange(2, appNameColPos, ppeLr, 1).getValues();
-  var anOned = flatten_arr(appNameArr);
 
   //creates an arr of all col pos of columns to be placed in the form and updated
   var gdprBoColPosArr = [];
@@ -97,7 +93,7 @@ function pp_form_gen() {
   var userInFormsSentNum = Number(activeTriggerPrompt); // this will be the response from a prompt about the numebr of active triggers left if there is a save point
   var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //needs to be inside loop the as well this is the first initilization
 //beginning of actual function
-  while (numFormsSent < 26) {
+  while (numFormsSent < 20) {
     var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
     Logger.log('Number of forms sent = ' + numFormsSent + '.');
     //create the one dimensional array of all the business owners the BO column for this iteration
@@ -105,6 +101,10 @@ function pp_form_gen() {
     var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
     var bsoOned = flatten_arr(busSysOwnerArr);
     bsoOned.pop();
+    //create a one dimensional array of all the applications still in the ppe for this iteration
+    var appNameColPos = find_col(ppeOned, 'Application');
+    var appNameArr = ppe.getRange(2, appNameColPos, ppeLr, 1).getValues();
+    var appNameOned = flatten_arr(appNameArr);
 
     if (bsoOned.length > 0 && bson < bsoOned.length) {
       var boToCheck = bsoOned[bson];
@@ -262,14 +262,34 @@ function pp_form_gen() {
           var options = {}
           options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
           MailApp.sendEmail(emailTo, subject, '', options);
-        Logger.log('Email sent');
+        Logger.log('Email sent, copy and save initiated.');
+
+        var appDelRowAdj = 0;
+        for (var z = 0; z < boAppsArr.length; z++ ) {
+          for (var m = 0; m < appNameArr.length; m ++ ) {
+            if (appNameArr[m] == boAppsArr[z]) {
+              var ppeSaveLr = ppeSave.getLastRow();
+              var ppeSaveLrPOne = ppeSaveLr + 1;
+              var appToRemRow = (m + 2 - appDelRowAdj);
+              var appRangeToCopy = ppe.getRange(appToRemRow, 1, 1, ppeLc).getValues();
+              ppeSave.getRange(ppeSaveLrPOne, 1, 1, ppeSaveLc).setValues(appRangeToCopy);
+              ppe.deleteRow(appToRemRow);
+              appDelRowAdj++;
+              Logger.log('appDelRowAdj incremented to ' + appDelRowAdj);
+              Logger.log(boAppsArr[z] + ' deleted and saved.');
+            }
+            else {
+              continue;
+            }
+          }
+        }
+        Logger.log('All applications for ' + boOfCurFormCre + ' have been deleted.');
         break;
       } //end of the elseif for creating a new form for user not found in the check array
       else {
         ui.alert('OOPs: something went wrong. Please contact and administrator.');
       } // end of the else right above this
     } //end of the forloop for the check against boFormComArr
-    //delete and move should be placed here I think
   } //end of the while loops
 } //end of the function
 
