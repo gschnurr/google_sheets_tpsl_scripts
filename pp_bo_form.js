@@ -302,8 +302,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   // get the trigger id passed from the event and use that to get the form id
   var triggerId = e.triggerUid;
   var formId = get_file_by_trigger_id(triggerId);
-  var form = FormApp.openById(formId);
-  var test = get_form_responses_formatted_Arr(form);
+  var formPpResp = FormApp.openById(formId);
   // the below might not work depending on how drive orders its files
   // begin searching through google drive files for files containing the below text in the title
   var files = DriveApp.searchFiles('title contains "PayPal Extract"');
@@ -317,7 +316,9 @@ function on_Form_Sub_Bo_Trigger(e) {
   var latestPpSsValue = (ppExtracts.length - 1);
   var ssId = ppExtracts[latestPpSsValue];
   var ss = SpreadsheetApp.openById(ssId);
-  var ppe = ss.getSheetByName('PayPal Extract');
+  var ppeSave = ss.getSheetByName('PayPal Extract Save');
+
+  getResp_update(formPpResp, ppeSave);
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
 }
 
@@ -331,9 +332,41 @@ function get_file_by_trigger_id(triggerId) {
 }
 
 // ideally this function will return an array of [[formitem, formresponse]] not sure actually might need to find a way to match things up and get a concise return
-function get_form_responses_formatted_Arr(form) {
+function getResp_update(form, updateSheet) {
   var itemArr = form.getItems();
-  return itemArr[0].getId();
+  var formResponse = form.getResponses();
+
+  var ppeSave = updateSheet;
+  var ppeSaveLc = ppeSave.getLastColumn();
+  var ppeSaveLr = ppeSave.getLastRow();
+  var ppeSaveTitleColumnArr = ppeSave.getRange(1, 1, 1, ppeLc).getValues();
+  var appNameTitleColPos = find_col(ppeSaveTitleColumnArr, 'Application');
+  var ppeSaveAppArr = ppeSave.getRange(2, appNameTitleColPos, ppeSaveLr, 1);
+
+  var ppeSaveTcArrOned = flatten_arr(ppeSaveTitleColumnArr);
+
+
+  for (var y = 0; y < itemArr.length; y++) {
+    var curItemType = itemArr[y].getType();
+    if (curItemType == FormApp.ItemType.PAGE_BREAK) {
+      var curAppName = itemArr[y].getTitle();
+      var curItemAppRow = find_row(ppeSaveAppArr, curAppName);
+      y++;
+      if (itemArr[y] == FormApp.ItemType.MULTIPLE.CHOICE || itemArr[y] == FormApp.ItemType.TEXT ) {
+        while (itemArr[y] == FormApp.ItemType.MULTIPLE.CHOICE || itemArr[y] == FormApp.ItemType.TEXT) {
+          var respItemColTi = itemArr[y].getTitle(); //column title
+          var respItemColTiPos = find_col(ppeSaveTcArrOned, respItemColTi);
+          var respItemId = itemArr[y].getId();
+          var respItemResp = formResponse.getResponseForItem(itemArr[y]);
+          ppeSave.getRange(appRow, respItemColTiPos, 1, 1).setValue(respItemResp);
+          y++;
+        }
+      }
+    }
+    else {
+      continue;
+    }
+  }
 }
 
 function update_app_info_in_ss() {
