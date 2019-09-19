@@ -137,6 +137,7 @@ function pp_form_gen() {
         var boOfCurFormCre = boToCheck;
         boFormComArr.unshift(boOfCurFormCre);
         var userUpdatesForm = FormApp.create(boOfCurFormCre + ' Applications');
+        userUpdatesForm.setTitle(boOfCurFormCre + ' Applications');
         //initial empty arrays for the currentBos app information
         var boAppsRowNumArr = [];
         var boAppsArr = [];
@@ -303,6 +304,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   var triggerId = e.triggerUid;
   var formId = get_file_by_trigger_id(triggerId);
   var formPpResp = FormApp.openById(formId);
+  Logger.log('A form has been submitted, the Form ID is ' + formId + ' and the trigger id is ' + triggerId);
   // the below might not work depending on how drive orders its files
   // begin searching through google drive files for files containing the below text in the title
   var files = DriveApp.searchFiles('title contains "PayPal Extract"');
@@ -317,6 +319,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   var ssId = ppExtracts[latestPpSsValue];
   var ss = SpreadsheetApp.openById(ssId);
   var ppeSave = ss.getSheetByName('PayPal Extract Save');
+  Logger.log('The spreadsheet to be opened is ' + ss);
 
   getResp_update(formPpResp, ppeSave);
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
@@ -324,51 +327,103 @@ function on_Form_Sub_Bo_Trigger(e) {
 
 function get_file_by_trigger_id(triggerId) {
   var triggers = ScriptApp.getProjectTriggers();
-  for(var i = 0; i < triggers.length; i++){
-    if (triggers[i].getUniqueId() == triggerId) {
-      return triggers[i].getTriggerSourceId();
+  for(var t = 0; t < triggers.length; t++){
+    if (triggers[t].getUniqueId() == triggerId) {
+      return triggers[t].getTriggerSourceId();
     }
   }
 }
 
-// ideally this function will return an array of [[formitem, formresponse]] not sure actually might need to find a way to match things up and get a concise return
 function getResp_update(form, updateSheet) {
   var itemArr = form.getItems();
-  var formResponse = form.getResponses();
-
+  Logger.log('The Form is ' + form.getTitle());
+  Logger.log('The update sheet is ' + updateSheet.getSheetName());
+  Logger.log('The itemArr is ' + itemArr);
+  var formResponses = form.getResponses();
   var ppeSave = updateSheet;
   var ppeSaveLc = ppeSave.getLastColumn();
   var ppeSaveLr = ppeSave.getLastRow();
-  var ppeSaveTitleColumnArr = ppeSave.getRange(1, 1, 1, ppeLc).getValues();
-  var appNameTitleColPos = find_col(ppeSaveTitleColumnArr, 'Application');
-  var ppeSaveAppArr = ppeSave.getRange(2, appNameTitleColPos, ppeSaveLr, 1);
-
-  var ppeSaveTcArrOned = flatten_arr(ppeSaveTitleColumnArr);
-
+  var ppeSaveTitleColumnArr = ppeSave.getRange(1, 1, 1, ppeSaveLc).getValues();
+  var ppeSaveTitleColumnArrOned = flatten_arr(ppeSaveTitleColumnArr);
+  var colTitleToFind = 'Application';
+  var appNameTitleColPos = find_col(ppeSaveTitleColumnArrOned, colTitleToFind);
+  var ppeSaveAppArr = ppeSave.getRange(2, appNameTitleColPos, ppeSaveLr, 1).getValues();
+  var ppeSaveAppArrOned = flatten_arr(ppeSaveAppArr);
 
   for (var y = 0; y < itemArr.length; y++) {
+    Logger.log('Y is ' + y + ' at the start of this for loop iteration.');
     var curItemType = itemArr[y].getType();
+    Logger.log('The item type of the item in the item array loop is ' + curItemType);
     if (curItemType == FormApp.ItemType.PAGE_BREAK) {
       var curAppName = itemArr[y].getTitle();
-      var curItemAppRow = find_row(ppeSaveAppArr, curAppName);
+      Logger.log('The current item type equals page break. The applicaiton is ' + curAppName);
+      var curItemAppRow = find_row(ppeSaveAppArrOned, curAppName);
+      Logger.log(curAppName + ' is in row ' + curItemAppRow + ' in the ppeSave sheet.');
       y++;
-      if (itemArr[y] == FormApp.ItemType.MULTIPLE.CHOICE || itemArr[y] == FormApp.ItemType.TEXT ) {
-        while (itemArr[y] == FormApp.ItemType.MULTIPLE.CHOICE || itemArr[y] == FormApp.ItemType.TEXT) {
+      Logger.log('Y is ' + y + ' before the while loop for this iteration.');
+      var firAppItemType = itemArr[y].getType();
+      Logger.log('The next item type in the array is ' + firAppItemType);
+      if (firAppItemType == FormApp.ItemType.MULTIPLE_CHOICE || firAppItemType == FormApp.ItemType.TEXT ) {
+        var nextItemType = firAppItemType;
+        while (nextItemType == FormApp.ItemType.MULTIPLE_CHOICE || nextItemType == FormApp.ItemType.TEXT) {
+          Logger.log('Beginning of the while loop for this iteration. Y = ' + y + ' nextItemType = ' + nextItemType);
           var respItemColTi = itemArr[y].getTitle(); //column title
-          var respItemColTiPos = find_col(ppeSaveTcArrOned, respItemColTi);
+          var respItemColTiPos = find_col(ppeSaveTitleColumnArrOned, respItemColTi);
           var respItemId = itemArr[y].getId();
-          var respItemResp = formResponse.getResponseForItem(itemArr[y]);
-          ppeSave.getRange(appRow, respItemColTiPos, 1, 1).setValue(respItemResp);
+          Logger.log('The response item id = ' + respItemId + ' , before the for loop of looping through the form responses');
+          var lastFormSub = formResponses.length - 1;
+          var formResponseNewest = formResponses[lastFormSub];
+          var itemResponseInst = formResponseNewest.getItemResponses();
+          for (var ir = 0; ir < itemResponseInst.length; ir++) {
+            var curItemResp = itemResponseInst[ir];
+            var itemRespIdforCurRespI = curItemResp.getItem().getId();
+            Logger.log('ID of respitem id does it match? ' + itemRespIdforCurRespI);
+            if (itemRespIdforCurRespI == respItemId) {
+              var respItemResp = curItemResp.getResponse();
+              Logger.log('The response for this item is ' + respItemResp);
+              break;
+            }
+            else if (itemRespIdforCurRespI != respItemId && ir != (itemResponseInst.length - 1)) {
+              continue;
+            }
+            else if (itemRespIdforCurRespI != respItemId && ir == (itemResponseInst.length - 1)) {
+              var respItemResp = ppeSave.getRange(curItemAppRow, respItemColTiPos, 1, 1).getValue();
+              Logger.log('The default value has been entered in the cell');
+            }
+            else {
+              MailApp.sendEmail('gibson.schnurr@izettle.com', 'something went wrong', 'Something went wrong in the for loop for checking IDs');
+              return;
+            }
+          }
+          Logger.log('The coordinates for the cell to be replaced are (in x,y format) ' + '(' + respItemColTiPos + ',' + curItemAppRow + ')' +
+          ' The value that will be set in that cell is ' + respItemResp);
+          ppeSave.getRange(curItemAppRow, respItemColTiPos, 1, 1).setValue(respItemResp);
           y++;
+          if (y < itemArr.length) {
+            Logger.log('Y has been incremented in the while loop to ' + y);
+            var nextItem = itemArr[y];
+            var nextItemType = nextItem.getType();
+            Logger.log('The next item type in the array is ' + nextItemType);
+          }
+          else {
+            Logger.log('Y has been decremented. Y = ' + y);
+            break;
+          }
         }
+        y--;
+        Logger.log('The while loop has ended. the nextItemType variable = ' + nextItemType + ' Y = ' + y);
+      }
+      else {
+        Logger.log('If statement before while loop did not pass, firAppItemType = ' + firAppItemType);
+        continue;
       }
     }
     else {
+      Logger.log('The the item failed the first if statement in the for loop. The item type that failed was ' + curItemType);
       continue;
     }
   }
-}
-
-function update_app_info_in_ss() {
-
+  var compLogs1 = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'On Form Sub Logs Comp Log', compLogs1);
+  Logger.log('The for loop has ended.');
 }

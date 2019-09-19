@@ -25,7 +25,7 @@ function find_col(tleColFlatArr, colToFind) {
 }
 
 function find_row(rowFlatArr, rowToFind) {
-  var colPos;
+  var rowPos;
   for (var i = 0; i < rowFlatArr.length; i++) {
     if (rowFlatArr[i] == rowToFind) {
       var rowPos = i + 2; //add two because arrays start at 0 not 1 and title row can be ignored
