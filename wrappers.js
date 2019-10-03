@@ -1,4 +1,6 @@
 function pp_gdpr_wizard_wrapper(){
+  var ui = SpreadsheetApp.getUi();
+
   if (sheetName == 'PayPal Extract') {
     pp_gdpr_wizard();
   }
@@ -9,6 +11,8 @@ function pp_gdpr_wizard_wrapper(){
 
 
 function pp_push_updates_wrapper() {
+  var ui = SpreadsheetApp.getUi();
+
   for (var i = 0; i < authorizedUsers.length; i++) {
     if (currentUser == authorizedUsers[i]) {
       var response = ui.alert('WARNING: Google Sheets is set to run the push_updates macro. This macro will overwrite existing data in the TPSL document. Are sure you want to continue with this Macro?', ui.ButtonSet.YES_NO);
@@ -35,6 +39,9 @@ function pp_push_updates_wrapper() {
 }
 
 function gen_export_wrapper() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
   //Checking if any columns have been chosen for export
   //it does not matter if the same column has been chosen multiple times
   var numExpCols = 0;
@@ -67,6 +74,8 @@ function gen_export_wrapper() {
 }
 
 function clean_export_wrapper() {
+  var ui = SpreadsheetApp.getUi();
+
   if (spreadsheetName == 'TPSL 2.0') {
     SpreadsheetApp.getUi().alert('Error: this macro cannot be run in the master TPSL document, please run this only in your generated export.');
     return;

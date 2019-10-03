@@ -1,7 +1,5 @@
 /** @OnlyCurrentDoc */
 //Sheet
-var spreadsheet = SpreadsheetApp.getActive();
-var ss = SpreadsheetApp.getActiveSpreadsheet();
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 var spreadsheetName = spreadsheet.getName();
 var sheetName = ss.getSheetName();
@@ -41,6 +39,3 @@ var authorizedUsers = ['gibson.schnurr@izettle.com', 'linn.andersson@izettle.com
 'roxanne.baumann@izettle.com', 'shumel.rahman@izettle.com'];
 var currentUser = Session.getActiveUser().getEmail();
 var numberOfAuthUsers = (authorizedUsers.length - 1);
-
-//UI
-var ui = SpreadsheetApp.getUi();

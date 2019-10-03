@@ -1,4 +1,8 @@
 function pp_information_prompt() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
   var htmlOutput = HtmlService
     .createHtmlOutput ('<p>1) Make sure that 1_Business Systems Sheet does not have a filter and that the sheet name has not changed </p>' +
     '<p> 2) Navigate to the PP Exports menu item and select PayPal GDPR Extract from the drop down menu. This will run the PayPal GDPR Macro. </p>' +
@@ -17,6 +21,7 @@ function pp_information_prompt() {
 function tpsl_pp_extract() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
 
   var tcaOned = flatten_arr(tpslTitleColumnArr);
   //finding gpdr column start position
@@ -96,6 +101,7 @@ function tpsl_pp_extract() {
 function get_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
 
   //change the name of the copied sheet
   ss.getSheetByName('Copy of PayPal Extract').setName('PayPal Extract');
@@ -205,6 +211,7 @@ function get_updates() {
 function push_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
   //rus sheet vars and functions
   var rus = ss.getSheetByName('Review Updates');
   var rusLr = rus.getLastRow();

@@ -1,4 +1,8 @@
 function gen_export_ins() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
   var htmlOutput = HtmlService
     .createHtmlOutput ('<p>1) From the Drop Down Select the Columns you want to export. </p>' +
     '<p> 2) Navigate to the Simple Exports menu item and select Generic Export from the drop down menu. This Macro will produce an output file located in your <a href="https://docs.google.com/spreadsheets/">google sheets drive.</a> </p>' +
@@ -11,6 +15,7 @@ function gen_export_ins() {
 function gen_export() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
   //create extract sheet and name
   spreadsheet.insertSheet(2);
   spreadsheet.getActiveSheet().setName('Generic Export');
@@ -55,6 +60,10 @@ function gen_export() {
 };
 
 function clean_export() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
   for (var i=0; i < sheets.length; i++) {
     if (sheets[i].getSheetName() != 'Generic Export') {
       sheets[i].activate();
