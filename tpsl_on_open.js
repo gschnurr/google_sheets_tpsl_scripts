@@ -2,6 +2,8 @@ function onOpen(e) {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
+  var spreadsheetName = spreadsheet.getName();
+  var sheetName = ss.getSheetName();
   //Simple Exports Menu Item
     ui.createMenu('Simple Exports')
       .addItem('Generic Export Instructions', 'gen_export_ins')

@@ -1,5 +1,7 @@
 function pp_gdpr_wizard_wrapper(){
   var ui = SpreadsheetApp.getUi();
+  var spreadsheetName = spreadsheet.getName();
+  var sheetName = ss.getSheetName();
 
   if (sheetName == 'PayPal Extract') {
     pp_gdpr_wizard();
@@ -75,6 +77,8 @@ function gen_export_wrapper() {
 
 function clean_export_wrapper() {
   var ui = SpreadsheetApp.getUi();
+  var spreadsheetName = spreadsheet.getName();
+  var sheetName = ss.getSheetName();
 
   if (spreadsheetName == 'TPSL 2.0') {
     SpreadsheetApp.getUi().alert('Error: this macro cannot be run in the master TPSL document, please run this only in your generated export.');

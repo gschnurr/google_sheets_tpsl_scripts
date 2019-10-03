@@ -60,9 +60,9 @@ function gen_export() {
 };
 
 function clean_export() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
+  var spreadsheetName = spreadsheet.getName();
+  var sheetName = ss.getSheetName();
 
   for (var i=0; i < sheets.length; i++) {
     if (sheets[i].getSheetName() != 'Generic Export') {

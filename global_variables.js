@@ -1,5 +1,7 @@
 /** @OnlyCurrentDoc */
 //Sheet
+var spreadsheet = SpreadsheetApp.getActive();
+var ss = SpreadsheetApp.getActiveSpreadsheet();
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 var spreadsheetName = spreadsheet.getName();
 var sheetName = ss.getSheetName();
