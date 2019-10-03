@@ -40,9 +40,17 @@ function tpsl_pp_extract() {
   spreadsheet.getActiveSheet().setName('PayPal Extract');
   var ppe = ss.getSheetByName('PayPal Extract');
 
-  //paste value of specified range
+  //paste value of specified range this should probably change from a paste function to a set function
   ppe.getRange('A1').activate();
   tpslAllCells.copyTo(ppe.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
+  var tpslAllNotes = tpslAllCells.getNotes();
+  var tpslAllDvRules = tpslAllCells.getDataValidations();
+  var ppeLr = ppe.getLastRow();
+  var ppeLc = ppe.getLastColumn();
+  var ppeAllCells = ppe.getRange(1, 1, ppeLr, ppeLc);
+  ppeAllCells.setNotes(tpslAllNotes);
+  ppeAllCells.setDataValidations(tpslAllDvRules);
+
 
   //deleting TPSL category title row as it is not needed
   ppe.getRange('1:1').activate();
