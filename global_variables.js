@@ -3,8 +3,6 @@
 var spreadsheet = SpreadsheetApp.getActive();
 var ss = SpreadsheetApp.getActiveSpreadsheet();
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
-var spreadsheetName = spreadsheet.getName();
-var sheetName = ss.getSheetName();
 var tpsl = ss.getSheetByName('1_Business Systems');
 var expGen = ss.getSheetByName('Export Generator');
 
