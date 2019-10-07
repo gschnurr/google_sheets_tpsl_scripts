@@ -1,4 +1,8 @@
 /** @OnlyCurrentDoc */
+
+var tstloggingOnOff = 'ON';
+var prdloggingOnOff = 'OFF';
+
 //Sheet
 var spreadsheet = SpreadsheetApp.getActive();
 var ss = SpreadsheetApp.getActiveSpreadsheet();

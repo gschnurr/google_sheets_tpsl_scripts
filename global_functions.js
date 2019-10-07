@@ -36,3 +36,61 @@ function find_row(rowFlatArr, rowToFind) {
   }
   return rowPos;
 }
+
+function filter_rows(valueArr, filItArr, workSheet) {
+  logs_tst('Row filtering has begun. The valueArr = ' + valueArr +
+  '. The items to filter on are ' + filItArr +
+  '. and the worksheet to complete this action in is ' + workSheet + '.');
+  var arrAdj = 2;
+  //arrAdj starts at 2 because the first row in the array is not the title column so we need to adjust for that
+  for (var delr = 0; delr < valueArr.length; delr++) {
+    if (filItArr.indexOf(valueArr[delr]) == -1) {
+      var rowPos = delr + arrAdj;
+      workSheet.deleteRow(rowPos);
+      --arrAdj;
+      logs_tst('Row # ' + rowPos + ' was filtered out. The value of that row is ' +
+      valueArr[delr] + '. The loop adjuster equals ' + arrAdj + ' post-decrement.');
+    }
+    else {
+      continue;
+    }
+  }
+}
+
+function filter_cols(valueArr, filItArr, workSheet) {
+  logs_tst('Column filtering has begun. The valueArr = ' + valueArr +
+  '. The items to filter on are ' + filItArr +
+  '. and the worksheet to complete this action in is ' + workSheet + '.');
+  var arrAdj = 1;
+  for (var delc = 0; delc < valueArr.length; delc++) {
+    if (filItArr.indexOf(valueArr[delc]) == -1) {
+      var colPos = delc + arrAdj;
+      workSheet.deleteColumn(colPos);
+      --arrAdj;
+      logs_tst('Row # ' + colPos + ' was filtered out. The value of that row is ' +
+      valueArr[delc] + '. The loop adjuster equals ' + arrAdj + ' post-decrement.');
+    }
+    else {
+      continue;
+    }
+  }
+}
+
+//creating two different logger wrappers one for testing so it will have all of the nuanced things that I need and one for live to report information to me.
+//global variable set above that will be var loggingOnOff = ON or OFF;
+//log content will be the exact content of logging this wrapper is just for each logging function to allow turning it on or off
+function logs_tst(logContent) {
+  if (tstloggingOnOff == 'ON') {
+    Logger.log(logContent);
+  }
+  else {
+  }
+}
+
+function logs_prd(logContent) {
+  if (prdloggingOnOff == 'ON') {
+    Logger.log(logContent);
+  }
+  else {
+  }
+}

@@ -35,12 +35,12 @@ function pp_form_gen() {
 
   //this loops checks all of the current sheets in the spreadsheet for the spreadsheet savePointSheet
   var savePointSheet = 'PayPal Extract Save';
-  Logger.log('All static variables have been initialized.');
+  logs_tst('All static variables have been initialized.');
 
   for (var s = 0; s < sheets.length; s++){
     curSheetName = sheets[s].getSheetName();
     if (curSheetName == savePointSheet) {
-      Logger.log('Sheet with sheet name ' + savePointSheet + ' already exists.');
+      logs_tst('Sheet with sheet name ' + savePointSheet + ' already exists.');
       break;
     }
     else if (curSheetName != savePointSheet && s != (sheets.length - 1)) {
@@ -55,7 +55,7 @@ function pp_form_gen() {
       ppeSave.getRange('A1').activate();
       ppe.getRange(1, 1, 1, ppeLc).copyTo(ppeSave.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
       ppeSave.setFrozenRows(1);
-      Logger.log('Sheet with sheet name ' + savePointSheet + ' created and formatted.');
+      logs_tst('Sheet with sheet name ' + savePointSheet + ' created and formatted.');
     }
     else {
       ui.alert('OOPs: something went wrong. Please contact and administrator.');
@@ -66,17 +66,17 @@ function pp_form_gen() {
   var ppeSaveLr = ppeSave.getLastRow();
   var ppeSaveLc = ppeSave.getLastColumn();
   var ppeSaveLrPOne = ppeSaveLr + 1;
-  Logger.log('ppeSave variables initialized.');
+  logs_tst('ppeSave variables initialized.');
 
   //creates 1d array of the title row values for the ppe spreadsheet
   var ppeOned = flatten_arr(ppeTitleColumnArr);
-  Logger.log('PPE title row array created.');
+  logs_tst('PPE title row array created.');
   //finds the position of the business system owner column grabs all of the data in that column and creates a 1d array and removes the last blank value
   var busSysOwnColPos = find_col(ppeOned, 'Business System Owner');
   var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
   var bsoOned = flatten_arr(busSysOwnerArr);
   bsoOned.pop();
-  Logger.log('One dimensional BO array created.');
+  logs_tst('One dimensional BO array created.');
 
   //creates an arr of all col pos of columns to be placed in the form and updated
   var gdprBoColPosArr = [];
@@ -84,7 +84,7 @@ function pp_form_gen() {
     var gdprBoColPos = find_col(ppeOned, gdprBoTColArr[c]);
     gdprBoColPosArr.push(gdprBoColPos);
   }
-  Logger.log('GDPR Column positions to be updated from initial static array have been found.');
+  logs_tst('GDPR Column positions to be updated from initial static array have been found.');
 
   //an array of the bo's who have been looped through to prevent creating multiple forms for one user
   var boFormComArr = [''];
@@ -94,7 +94,7 @@ function pp_form_gen() {
   var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //needs to be inside loop the as well this is the first initilization
 //beginning of actual function
   while (numFormsSent < 20) {
-    Logger.log('Number of forms sent = ' + numFormsSent + '.');
+    logs_tst('Number of forms sent = ' + numFormsSent + '.');
     //create the one dimensional array of all the business owners the BO column for this iteration
     var ppeLr = ppe.getLastRow();
     var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
@@ -107,32 +107,32 @@ function pp_form_gen() {
 
     if (bsoOned.length > 0 && bson < bsoOned.length) {
       var boToCheck = bsoOned[bson];
-      Logger.log('BOArry Loop prior to check, BO = ' + boToCheck);
+      logs_tst('BOArry Loop prior to check, BO = ' + boToCheck);
     }
     else {
-      Logger.log('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '.');
+      logs_tst('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '.');
       var compLogs = Logger.getLog();
       MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', compLogs);
       ui.alert('OPERATION COMPLETE: There are no unique business system owners left.')
       return;
     }
     for (var c = 0; c < boFormComArr.length; c++) {
-      Logger.log('BOs that have been used are ' + boFormComArr);
+      logs_tst('BOs that have been used are ' + boFormComArr);
       // if the first current item in the completed array = the current bo then go to the next bo
       if (boFormComArr[c] == boToCheck) {
-        Logger.log('BOCompArr Loop - BO Has already been used, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
+        logs_tst('BOCompArr Loop - BO Has already been used, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
         bson++;
-        Logger.log('bson incrimented to ' + bson);
+        logs_tst('bson incrimented to ' + bson);
         break;
       }
       else if (boFormComArr[c] != boToCheck && c != (boFormComArr.length - 1)){
-        Logger.log('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
+        logs_tst('BOCompArr Loop - BO is not in ARR but we are not at the end of the array yet, BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
         continue;
       }
       else if (boFormComArr[c] != boToCheck && c == (boFormComArr.length - 1)) {
-        Logger.log('BOCompArr Loop - BO Not Found, create form. BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
+        logs_tst('BOCompArr Loop - BO Not Found, create form. BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
         bson = 0;
-        Logger.log('bson reset to zero.')
+        logs_tst('bson reset to zero.')
         //defining the currentBO Email as a variable and adding that BO to the already used array
         var boOfCurFormCre = boToCheck;
         boFormComArr.unshift(boOfCurFormCre);
@@ -153,11 +153,11 @@ function pp_form_gen() {
             continue;
           }
         }
-        Logger.log('Form For ' + boOfCurFormCre + ' created ' + boOfCurFormCre + ' has ' + boAppsArr.length + ' Applications');
+        logs_tst('Form For ' + boOfCurFormCre + ' created ' + boOfCurFormCre + ' has ' + boAppsArr.length + ' Applications');
         for (var u = 0; u < boAppsRowNumArr.length; u++) {
           var appToUpdate = boAppsArr[u];
           userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
-          Logger.log('the first application is ' + appToUpdate);
+          logs_tst('the first application is ' + appToUpdate);
           for (var v = 0; v < gdprBoColPosArr.length; v++) {
             var colTitle = gdprBoTColArr[v];
             var colHelpText = ppe.getRange(1, gdprBoColPosArr[v], 1, 1).getNotes();
@@ -249,9 +249,9 @@ function pp_form_gen() {
                   .setHelpText(colHelpText + ' The current information is ' + currentInfoCheck + '.')
             }
           } //end of the loop for creating gdpr form elements
-          Logger.log('All items are added for ' + appToUpdate);
+          logs_tst('All items are added for ' + appToUpdate);
         } //end of the loop for currentBO applications loop
-        Logger.log('All applications are added to the form. ' + u + ' applications were added.');
+        logs_tst('All applications are added to the form. ' + u + ' applications were added.');
         ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
           .forForm(userUpdatesForm)
           .onFormSubmit()
@@ -262,7 +262,7 @@ function pp_form_gen() {
           var options = {}
           options.htmlBody = "Hi Everyone-" +'<br />'+'<br />'+ "Here\'s the " + '<a href=\"' + responseUrl + '">form URL</a>';
           MailApp.sendEmail(emailTo, subject, '', options);
-        Logger.log('Email sent, copy and save initiated.');
+        logs_tst('Email sent, copy and save initiated.');
 
         var appDelRowAdj = 0;
         for (var z = 0; z < boAppsArr.length; z++ ) {
@@ -275,8 +275,8 @@ function pp_form_gen() {
               ppeSave.getRange(ppeSaveLrPOne, 1, 1, ppeSaveLc).setValues(appRangeToCopy);
               ppe.deleteRow(appToRemRow);
               appDelRowAdj++;
-              Logger.log('appDelRowAdj incremented to ' + appDelRowAdj);
-              Logger.log(boAppsArr[z] + ' deleted and saved.');
+              logs_tst('appDelRowAdj incremented to ' + appDelRowAdj);
+              logs_tst(boAppsArr[z] + ' deleted and saved.');
             }
             else {
               continue;
@@ -284,8 +284,8 @@ function pp_form_gen() {
           }
         }
         var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
-        Logger.log('Number of forms sent = ' + numFormsSent + '.');
-        Logger.log('All applications for ' + boOfCurFormCre + ' have been deleted.');
+        logs_tst('Number of forms sent = ' + numFormsSent + '.');
+        logs_tst('All applications for ' + boOfCurFormCre + ' have been deleted.');
         break;
       } //end of the elseif for creating a new form for user not found in the check array
       else {
@@ -293,7 +293,7 @@ function pp_form_gen() {
       } // end of the else right above this
     } //end of the forloop for the check against boFormComArr
   } //end of the while loops
-  Logger.log('The max number of triggers have been reached.');
+  logs_tst('The max number of triggers have been reached.');
   var trigLimReachedLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', trigLimReachedLogs);
   ui.alert('OPERATION COMPLETE/WARNING: Maximum number of triggers exceeded.');
@@ -304,7 +304,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   var triggerId = e.triggerUid;
   var formId = get_file_by_trigger_id(triggerId);
   var formPpResp = FormApp.openById(formId);
-  Logger.log('A form has been submitted, the Form ID is ' + formId + ' and the trigger id is ' + triggerId);
+  logs_tst('A form has been submitted, the Form ID is ' + formId + ' and the trigger id is ' + triggerId);
   // the below might not work depending on how drive orders its files
   // begin searching through google drive files for files containing the below text in the title
   var files = DriveApp.searchFiles('title contains "PayPal Extract"');
@@ -319,7 +319,7 @@ function on_Form_Sub_Bo_Trigger(e) {
   var ssId = ppExtracts[latestPpSsValue];
   var ss = SpreadsheetApp.openById(ssId);
   var ppeSave = ss.getSheetByName('PayPal Extract Save');
-  Logger.log('The spreadsheet to be opened is ' + ss);
+  logs_tst('The spreadsheet to be opened is ' + ss);
 
   getResp_update(formPpResp, ppeSave);
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
@@ -336,9 +336,9 @@ function get_file_by_trigger_id(triggerId) {
 
 function getResp_update(form, updateSheet) {
   var itemArr = form.getItems();
-  Logger.log('The Form is ' + form.getTitle());
-  Logger.log('The update sheet is ' + updateSheet.getSheetName());
-  Logger.log('The itemArr is ' + itemArr);
+  logs_tst('The Form is ' + form.getTitle());
+  logs_tst('The update sheet is ' + updateSheet.getSheetName());
+  logs_tst('The itemArr is ' + itemArr);
   var formResponses = form.getResponses();
   var ppeSave = updateSheet;
   var ppeSaveLc = ppeSave.getLastColumn();
@@ -351,36 +351,36 @@ function getResp_update(form, updateSheet) {
   var ppeSaveAppArrOned = flatten_arr(ppeSaveAppArr);
 
   for (var y = 0; y < itemArr.length; y++) {
-    Logger.log('Y is ' + y + ' at the start of this for loop iteration.');
+    logs_tst('Y is ' + y + ' at the start of this for loop iteration.');
     var curItemType = itemArr[y].getType();
-    Logger.log('The item type of the item in the item array loop is ' + curItemType);
+    logs_tst('The item type of the item in the item array loop is ' + curItemType);
     if (curItemType == FormApp.ItemType.PAGE_BREAK) {
       var curAppName = itemArr[y].getTitle();
-      Logger.log('The current item type equals page break. The applicaiton is ' + curAppName);
+      logs_tst('The current item type equals page break. The applicaiton is ' + curAppName);
       var curItemAppRow = find_row(ppeSaveAppArrOned, curAppName);
-      Logger.log(curAppName + ' is in row ' + curItemAppRow + ' in the ppeSave sheet.');
+      logs_tst(curAppName + ' is in row ' + curItemAppRow + ' in the ppeSave sheet.');
       y++;
-      Logger.log('Y is ' + y + ' before the while loop for this iteration.');
+      logs_tst('Y is ' + y + ' before the while loop for this iteration.');
       var firAppItemType = itemArr[y].getType();
-      Logger.log('The next item type in the array is ' + firAppItemType);
+      logs_tst('The next item type in the array is ' + firAppItemType);
       if (firAppItemType == FormApp.ItemType.MULTIPLE_CHOICE || firAppItemType == FormApp.ItemType.TEXT ) {
         var nextItemType = firAppItemType;
         while (nextItemType == FormApp.ItemType.MULTIPLE_CHOICE || nextItemType == FormApp.ItemType.TEXT) {
-          Logger.log('Beginning of the while loop for this iteration. Y = ' + y + ' nextItemType = ' + nextItemType);
+          logs_tst('Beginning of the while loop for this iteration. Y = ' + y + ' nextItemType = ' + nextItemType);
           var respItemColTi = itemArr[y].getTitle(); //column title
           var respItemColTiPos = find_col(ppeSaveTitleColumnArrOned, respItemColTi);
           var respItemId = itemArr[y].getId();
-          Logger.log('The response item id = ' + respItemId + ' , before the for loop of looping through the form responses');
+          logs_tst('The response item id = ' + respItemId + ' , before the for loop of looping through the form responses');
           var lastFormSub = formResponses.length - 1;
           var formResponseNewest = formResponses[lastFormSub];
           var itemResponseInst = formResponseNewest.getItemResponses();
           for (var ir = 0; ir < itemResponseInst.length; ir++) {
             var curItemResp = itemResponseInst[ir];
             var itemRespIdforCurRespI = curItemResp.getItem().getId();
-            Logger.log('ID of respitem id does it match? ' + itemRespIdforCurRespI);
+            logs_tst('ID of respitem id does it match? ' + itemRespIdforCurRespI);
             if (itemRespIdforCurRespI == respItemId) {
               var respItemResp = curItemResp.getResponse();
-              Logger.log('The response for this item is ' + respItemResp);
+              logs_tst('The response for this item is ' + respItemResp);
               break;
             }
             else if (itemRespIdforCurRespI != respItemId && ir != (itemResponseInst.length - 1)) {
@@ -388,42 +388,42 @@ function getResp_update(form, updateSheet) {
             }
             else if (itemRespIdforCurRespI != respItemId && ir == (itemResponseInst.length - 1)) {
               var respItemResp = ppeSave.getRange(curItemAppRow, respItemColTiPos, 1, 1).getValue();
-              Logger.log('The default value has been entered in the cell');
+              logs_tst('The default value has been entered in the cell');
             }
             else {
               MailApp.sendEmail('gibson.schnurr@izettle.com', 'something went wrong', 'Something went wrong in the for loop for checking IDs');
               return;
             }
           }
-          Logger.log('The coordinates for the cell to be replaced are (in x,y format) ' + '(' + respItemColTiPos + ',' + curItemAppRow + ')' +
+          logs_tst('The coordinates for the cell to be replaced are (in x,y format) ' + '(' + respItemColTiPos + ',' + curItemAppRow + ')' +
           ' The value that will be set in that cell is ' + respItemResp);
           ppeSave.getRange(curItemAppRow, respItemColTiPos, 1, 1).setValue(respItemResp);
           y++;
           if (y < itemArr.length) {
-            Logger.log('Y has been incremented in the while loop to ' + y);
+            logs_tst('Y has been incremented in the while loop to ' + y);
             var nextItem = itemArr[y];
             var nextItemType = nextItem.getType();
-            Logger.log('The next item type in the array is ' + nextItemType);
+            logs_tst('The next item type in the array is ' + nextItemType);
           }
           else {
-            Logger.log('Y has been decremented. Y = ' + y);
+            logs_tst('Y has been decremented. Y = ' + y);
             break;
           }
         }
         y--;
-        Logger.log('The while loop has ended. the nextItemType variable = ' + nextItemType + ' Y = ' + y);
+        logs_tst('The while loop has ended. the nextItemType variable = ' + nextItemType + ' Y = ' + y);
       }
       else {
-        Logger.log('If statement before while loop did not pass, firAppItemType = ' + firAppItemType);
+        logs_tst('If statement before while loop did not pass, firAppItemType = ' + firAppItemType);
         continue;
       }
     }
     else {
-      Logger.log('The the item failed the first if statement in the for loop. The item type that failed was ' + curItemType);
+      logs_tst('The the item failed the first if statement in the for loop. The item type that failed was ' + curItemType);
       continue;
     }
   }
   var compLogs1 = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'On Form Sub Logs Comp Log', compLogs1);
-  Logger.log('The for loop has ended.');
+  logs_tst('The for loop has ended.');
 }

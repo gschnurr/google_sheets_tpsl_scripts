@@ -46,23 +46,25 @@ function gen_export_wrapper() {
   var ui = SpreadsheetApp.getUi();
   //Checking if any columns have been chosen for export
   //it does not matter if the same column has been chosen multiple times
+  var expGenOned = flatten_arr(expGenColumnArr);
   var numExpCols = 0;
-  for (var i = 0; i < expGenColumnArr.length; i++) {
-    if (expGenColumnArr[i] != '') {
+  for (var i = 0; i < expGenOned.length; i++) {
+    if (expGenOned[i] != '') {
       ++numExpCols;
       continue;
     }
-    else if (expGenColumnArr[i] == '' && i != (expGenColumnArr.length - 1)) {
+    else if (expGenOned[i] == '' && i != (expGenOned.length - 1)) {
       continue;
     }
-    else if (i == (expGenColumnArr.length - 1) && numExpCols != 0) {
+    else if (i == (expGenOned.length - 1) && numExpCols != 0) {
       gen_export();
       MailApp.sendEmail('gibson.schnurr@izettle.com',
                 'General Export Created',
-                'The general export macro was run successfully. The running user was ' + currentUser + '.');
+                'The general export macro was run successfully. The running user was ' + currentUser + '.' +
+                'The exported columns are ' + expGenOned);
       ui.alert('Export Created, Please check your google sheet files for the Generic Export with Todays Date.');
     }
-    else if (i == (expGenColumnArr.length - 1) && numExpCols == 0) {
+    else if (i == (expGenOned.length - 1) && numExpCols == 0) {
       ui.alert('Whoops! You have not selected any columns to export. Please select at least one column.');
       expGen.activate();
     }

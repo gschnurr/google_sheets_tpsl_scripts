@@ -24,25 +24,16 @@ function tpsl_pp_extract() {
   var ui = SpreadsheetApp.getUi();
 
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-  //finding gpdr column start position
-  var gdprColPos = find_col(tcaOned, 'GDPR Data (Y,N)');
-  //filter tpsl sheet on gdpr column
-  tpslAllCells.activate();
-  tpsl.setCurrentCell(spreadsheet.getRange('A1'));
-  tpslAllCells.createFilter();
-  tpsl.getRange('A1').activate();
-  var criteria = SpreadsheetApp.newFilterCriteria().setHiddenValues(['', 'N', '#N/A']).build();
-  tpsl.getFilter().setColumnFilterCriteria(gdprColPos, criteria);
-  tpsl.getRange('A1').activate();
-
   //create extract sheet and name
   spreadsheet.insertSheet(2);
   spreadsheet.getActiveSheet().setName('PayPal Extract');
   var ppe = ss.getSheetByName('PayPal Extract');
+  logs_tst('PayPal Extract sheet created.');
 
   //paste value of specified range this should probably change from a paste function to a set function
-  ppe.getRange('A1').activate();
-  tpslAllCells.copyTo(ppe.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
+  var tpslWholeSheetArr = tpslAllCells.getValues();
+  ppe.getRange(1, 1, tpslLr, tpslLc).setValues(tpslWholeSheetArr);
+  logs_tst('Values from TPSL copied to the PPE sheet without format.');
   var tpslAllNotes = tpslAllCells.getNotes();
   var tpslAllDvRules = tpslAllCells.getDataValidations();
   var ppeLr = ppe.getLastRow();
@@ -50,29 +41,29 @@ function tpsl_pp_extract() {
   var ppeAllCells = ppe.getRange(1, 1, ppeLr, ppeLc);
   ppeAllCells.setNotes(tpslAllNotes);
   ppeAllCells.setDataValidations(tpslAllDvRules);
-
+  logs_tst('TPSL notes and data validation settings copied to PPE Sheet');
 
   //deleting TPSL category title row as it is not needed
-  ppe.getRange('1:1').activate();
-  ppe.deleteRows(spreadsheet.getActiveRange().getRow(), spreadsheet.getActiveRange().getNumRows());
-
+  ppe.deleteRow(1);
   //Copying format of title row from tpsl to ppe
   ppe.getRange('A1').activate();
   tpsl.getRange(2, 1, 1, tpslLc).copyTo(ppe.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
-
+  logs_tst('Format for title row copied from TPSL to PPE Spreadsheet');
+  var ppeTcArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
+  var ppeTcaOned = flatten_arr(ppeTcArr);
+  var ppeGdprColPos = find_col(ppeTcaOned, 'GDPR Data (Y,N)');
+  var ppeGdprColFilItArr = ['Y'];
+  var gdprYesNoArry = ppe.getRange(2, ppeGdprColPos, ppeLr, 1).getValues();
+  var gdprYesNoOned = flatten_arr(gdprYesNoArry);
+  logs_tst('The gdpr column is in column ' + ppeGdprColPos + '. The values in that column are ' + gdprYesNoOned);
+  filter_rows(gdprYesNoOned, ppeGdprColFilItArr, ppe);
+  logs_tst('Row filtering complete');
   //freezing title row of ppe
   ppe.setFrozenRows(1);
 
   //deleting un-needed columns
-  var arrAdj = 1;
-
-  for (var d = 0; d < tcaOned.length; d++) {
-    if (ppeColsArr.indexOf(tcaOned[d]) == -1) {
-      var colPos = d + arrAdj;
-      ppe.deleteColumn(colPos);
-      --arrAdj;
-    }
-  }
+  filter_cols(tcaOned, ppeColsArr, ppe);
+  logs_tst('Column filtering complete.');
 
   // this inserts an additional column with the specified header
   var ppeLr = ppe.getLastRow();
@@ -99,9 +90,10 @@ function tpsl_pp_extract() {
 
   //reseting to tpsl to before macro by deleting extract sheet and removing filter
   spreadsheet.deleteSheet(ppe);
-  tpsl.getFilter().remove();
   sheets[0].activate();
 
+  var compLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'TPSL GDPR PPE Gen Logs', compLogs);
   //alert for end of macro
   ui.alert('Extract Created, Please check your google sheet files for the PayPal Extract with Todays Date');
 };
