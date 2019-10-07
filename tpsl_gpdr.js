@@ -197,7 +197,7 @@ function get_updates() {
     logs_tst('The current new item is ' + rusCheckOned[cdn] + ', this item is in row ' + rusCdnRow);
     for (var cdo = 0; cdo < rusCheckOned.length; cdo++){
       var rusCdoRow = cdo + 2;
-      logs_tst('The current new item is ' + rusCheckOned[cdo] + ', this item is in row ' + rusCdoRow);
+      logs_tst('The current original item is ' + rusCheckOned[cdo] + ', this item is in row ' + rusCdoRow);
       if (rusCheckOned[cdn] == rusCheckOned[cdo] && cdn != cdo){
         logs_tst('Match found between new data and old data IDs in Rows ' + rusCdoRow + ' and ' + rusCdnRow);
         var rusNewInfoArr = rus.getRange(rusCdnRow, 1, 1, rusLc).getValues();
