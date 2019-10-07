@@ -22,7 +22,6 @@ function tpsl_pp_extract() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
-
   var tcaOned = flatten_arr(tpslTitleColumnArr);
   //create extract sheet and name
   spreadsheet.insertSheet(2);
@@ -105,51 +104,31 @@ function get_updates() {
 
   //change the name of the copied sheet
   ss.getSheetByName('Copy of PayPal Extract').setName('PayPal Extract');
+  logs_tst('PPE Spreadsheet renamed to remove copy of');
   var ppe = ss.getSheetByName('PayPal Extract');
   var ppeLr = ppe.getLastRow();
   var ppeLc = ppe.getLastColumn();
   var ppeAllCells = ppe.getRange(1, 1, ppeLr, ppeLc);
-
+  var ppeAllCellsArr = ppeAllCells.getValues();
   var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
-  var parOned = flatten_arr(ppeTitleColumnArr);
-
-  //find the updates column and create a variable with the integer of the column position
-  var updatesColPos = find_col(parOned, 'Updates? (Y/N) If yes please make the updates in this sheet');
-
-  //filter ppe sheet on updates column
-  ppeAllCells.activate();
-  ppe.setCurrentCell(spreadsheet.getRange('A1'));
-  ppeAllCells.createFilter();
-  ppe.getRange('A1').activate();
-  var criteria = SpreadsheetApp.newFilterCriteria().setHiddenValues(['', 'N']).build();
-  ppe.getFilter().setColumnFilterCriteria(updatesColPos, criteria);
-  ppe.getRange('A1').activate();
+  var parTcaOned = flatten_arr(ppeTitleColumnArr);
 
   //create extract sheet and name of updates
   spreadsheet.insertSheet(2);
   spreadsheet.getActiveSheet().setName('Review Updates');
   var rus = ss.getSheetByName('Review Updates');
+  logs_tst(rus + ' has been created');
 
   //paste value of specified range
-  rus.getRange('A1').activate();
-  ppeAllCells.copyTo(rus.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_VALUES, false);
+  rus.getRange(1, 1, ppeLr, ppeLc).setValues(ppeAllCellsArr);
+  logs_tst('All data set in the Review Updates Sheet');
+
 
   //Copying format of title row from tpsl to ppe
   rus.getRange('A1').activate();
   ppe.getRange(1, 1, 1, ppeLc).copyTo(rus.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
-
-  //columns and rows to be highlighted
-  var rusNumR = rus.getLastRow();
-  var rusNumC = rus.getLastColumn();
-
-  //loop through all cells in the range and highlighting them
-  for (var i = 2; i <= rusNumR; i++) {
-    for (var j = 1; j <= rusNumC; j++) {
-      rus.getRange(i, j).setBackground('yellow');
-    }
-  }
-  //get originals
-
+  logs_tst('Title row formatting copied');
+  //get originals for all items
   //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
   var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
@@ -174,6 +153,18 @@ function get_updates() {
   var rusOned = flatten_arr(rusArray);
   //removes the last item of the array since it is a blank item
   rusOned.pop();
+  logs_tst('All variables initialized to find, copy, and set original data in rus.');
+  //columns and rows to be highlighted
+  var rusNumR = rus.getLastRow();
+  var rusNumC = rus.getLastColumn();
+
+  //loop through all cells in the range and highlighting them
+  for (var i = 2; i <= rusNumR; i++) {
+    for (var j = 1; j <= rusNumC; j++) {
+      rus.getRange(i, j).setBackground('yellow');
+    }
+  }
+  logs_tst('All new information has been highlighted.')
   //finding the original information looping and pasting
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
@@ -192,19 +183,67 @@ function get_updates() {
     }
   }
 
+  var rusLr = rus.getLastRow();
+  var rusLc = rus.getLastColumn();
+  var rusIndexCheckArr = rus.getRange(2, 1, rusLr, 1).getValues();
+  logs_tst('rusIndexCheckArr = ' + rusIndexCheckArr);
+  var rusCheckOned = flatten_arr(rusIndexCheckArr);
+  logs_tst('rusCheckOned = ' + rusCheckOned);
+  var updatesColPos = find_col(parTcaOned, 'Updates? (Y/N) If yes please make the updates in this sheet');
+
+  //check if there are changes to the data
+  for (var cdn = 0; cdn < rusCheckOned.length; cdn++) {
+    var rusCdnRow = cdn + 2;
+    logs_tst('The current new item is ' + rusCheckOned[cdn] + ', this item is in row ' + rusCdnRow);
+    for (var cdo = 0; cdo < rusCheckOned.length; cdo++){
+      var rusCdoRow = cdo + 2;
+      logs_tst('The current new item is ' + rusCheckOned[cdo] + ', this item is in row ' + rusCdoRow);
+      if (rusCheckOned[cdn] == rusCheckOned[cdo] && cdn != cdo){
+        logs_tst('Match found between new data and old data IDs in Rows ' + rusCdoRow + ' and ' + rusCdnRow);
+        var rusNewInfoArr = rus.getRange(rusCdnRow, 1, 1, rusLc).getValues();
+        var rusOrigInfoArr = rus.getRange(rusCdoRow, 1, 1, rusLc).getValues();
+        var rusNiOned = flatten_arr(rusNewInfoArr);
+        var rusOiOned = flatten_arr(rusOrigInfoArr);
+        for (var rv = 0; rv < rusNiOned.length; rv++) {
+          if (rusNiOned[rv] != rusOiOned[rv]) {
+            logs_tst('It seems that data has been changed for this item in column ' + (rv + 1) +
+            '. The information has been changed from ' + rusOiOned[rv] + ' to ' + rusNiOned[rv]);
+            rus.getRange(rusCdnRow, updatesColPos, 1, 1).setValue('Y');
+            rus.getRange(rusCdoRow, updatesColPos, 1, 1).setValue('Y');
+          }
+          else if (rusNiOned[rv] == rusOiOned[rv] && rv < rusNiOned.length) {
+            continue;
+          }
+          else {
+            continue;
+            logs_tst('No changes were found for this item.');
+          }
+        }
+      }
+      else {
+        continue;
+      }
+    }
+  }
+  logs_tst('All items have been checked for updates.');
+  //filtering none updated rows
+  var rusLr = rus.getLastRow();
+  var rusLc = rus.getLastColumn();
+  var updatesFiltRangeArr = rus.getRange(2, updatesColPos, rusLr, 1).getValues();
+  var updatesFiltOned = flatten_arr(updatesFiltRangeArr);
+  var updatesFilItArr = ['Y'];
+  filter_rows(updatesFiltOned, updatesFilItArr, rus);
+  logs_tst('All non-updated rows have been removed from the spreadsheet.');
 
   //freezing title row of ppe
   rus.setFrozenRows(1);
-
   //sort to pair ids
-
   var rusLrSort = rus.getLastRow();
   var rusLcSort = rus.getLastColumn();
-
   rus.getRange(2, 1, rusLrSort, rusLcSort).sort(1);
 
-  //remove filter on ppe
-  ppe.getFilter().remove();
+  var compLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Get Updates Logs', compLogs);
   ui.alert('Updates have been pulled.');
 }
 
