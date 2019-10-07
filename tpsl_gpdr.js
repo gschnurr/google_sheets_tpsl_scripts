@@ -164,7 +164,7 @@ function get_updates() {
       rus.getRange(i, j).setBackground('yellow');
     }
   }
-  logs_tst('All new information has been highlighted.')
+  logs_tst('All new information has been highlighted.');
   //finding the original information looping and pasting
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
@@ -194,12 +194,11 @@ function get_updates() {
   //check if there are changes to the data
   for (var cdn = 0; cdn < rusCheckOned.length; cdn++) {
     var rusCdnRow = cdn + 2;
-    logs_tst('The current new item is ' + rusCheckOned[cdn] + ', this item is in row ' + rusCdnRow);
     for (var cdo = 0; cdo < rusCheckOned.length; cdo++){
       var rusCdoRow = cdo + 2;
-      logs_tst('The current original item is ' + rusCheckOned[cdo] + ', this item is in row ' + rusCdoRow);
       if (rusCheckOned[cdn] == rusCheckOned[cdo] && cdn != cdo){
         logs_tst('Match found between new data and old data IDs in Rows ' + rusCdoRow + ' and ' + rusCdnRow);
+        logs_tst('This match is for ' + rusCheckOned[cdn] + ' and ' + rusCheckOned[cdo]);
         var rusNewInfoArr = rus.getRange(rusCdnRow, 1, 1, rusLc).getValues();
         var rusOrigInfoArr = rus.getRange(rusCdoRow, 1, 1, rusLc).getValues();
         var rusNiOned = flatten_arr(rusNewInfoArr);
@@ -210,13 +209,14 @@ function get_updates() {
             '. The information has been changed from ' + rusOiOned[rv] + ' to ' + rusNiOned[rv]);
             rus.getRange(rusCdnRow, updatesColPos, 1, 1).setValue('Y');
             rus.getRange(rusCdoRow, updatesColPos, 1, 1).setValue('Y');
+            break;
           }
-          else if (rusNiOned[rv] == rusOiOned[rv] && rv < rusNiOned.length) {
+          else if (rusNiOned[rv] == rusOiOned[rv] && rv != (rusNiOned.length - 1)) {
             continue;
           }
           else {
-            continue;
             logs_tst('No changes were found for this item.');
+            break;
           }
         }
       }
