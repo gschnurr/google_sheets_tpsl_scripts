@@ -103,7 +103,7 @@ function get_updates() {
   var ui = SpreadsheetApp.getUi();
 
   //change the name of the copied sheet
-  ss.getSheetByName('Copy of PayPal Extract').setName('PayPal Extract');
+  ss.getSheetByName('Copy of PayPal Extract Save').setName('PayPal Extract');
   logs_tst('PPE Spreadsheet renamed to remove copy of');
   var ppe = ss.getSheetByName('PayPal Extract');
   var ppeLr = ppe.getLastRow();
