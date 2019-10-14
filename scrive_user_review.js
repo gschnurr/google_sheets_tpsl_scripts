@@ -1,7 +1,4 @@
 /*
-Create a script that pulls in the usage and last usage month by user - done
-create a script that will grab all of the answers to the forms and based on form title and format the answers in spreadsheet
-Script to check what surveys have been responded to
 script to send reminder
 **/
 
@@ -234,7 +231,14 @@ function get_form_resp() {
     var curFormResponses = curForm.getResponses();
     var formLastResponseInt = curFormResponses.length - 1;
     var curFormLatestResp = curFormResponses[formLastResponseInt];
-    var curFormUserEmail = curFormLatestResp.getRespondentEmail();
+    if (formLastResponseInt < 0) {
+      var curFormUserEmail = 'There are no responses';
+      logs_tst('There are no responses for this form so we will move to the next form.');
+      continue;
+    }
+    else {
+      var curFormUserEmail = mostRecentResp.getRespondentEmail();
+    }
     logs_tst('The respondent to this form was ' + curFormUserEmail);
     for (var fe = 0; fe < csuEmailOned.length; fe++){
       if (csuEmailOned[fe] == curFormUserEmail) {
