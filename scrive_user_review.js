@@ -227,6 +227,8 @@ function get_form_resp() {
     formIdArr.push(curFormIt.getId());
   }
 
+  var missingUserArr = [];
+
   for (var fi = 0; fi < formIdArr.length; fi++) {
     var curForm = FormApp.openById(formIdArr[fi]);
     logs_tst('The Form iD ' + formIdArr[fi]);
@@ -247,16 +249,51 @@ function get_form_resp() {
       if (csuEmailOned[fe] == curFormUserEmail) {
         var curFormUserRow = fe + 2;
         logs_tst('User Email found in CSU, user is in row ' + curFormUserRow);
-        csu.getRange(curFormUserRow, csuFormIdColPos, 1, 1).setValues(formIdArr[fi]);
-        break;
+        csu.getRange(curFormUserRow, csuFormIdColPos, 1, 1).setValue(formIdArr[fi]);
+        logs_tst('Form item find and replace has started');
+        for (var ia = 0; ia < curFormItemArr.length; ia++) {
+          var curItemType = curFormItemArr[ia].getType();
+          if (curItemType == FormApp.ItemType.TEXT || curItemType == FormApp.ItemType.MULTIPLE_CHOICE || curItemType == FormApp.ItemType.PARAGRAPH_TEXT) {
+            var itemQuest = curFormItemArr[ia].getTitle();
+            logs_tst('The question is ' + itemQuest);
+            var curItemId = curFormItemArr[ia].getId();
+            logs_tst('The item ID is ' + curItemId);
+            var questIndex = fqsQOned.indexOf(itemQuest);
+            logs_tst('The index of this question in the question array is ' + questIndex);
+            var questRow = questIndex + 2;
+            var answerCol = fqs.getRange(questRow, fqsAnsColHeadColPos, 1, 1).getValue();
+            var answerColPosCsu = find_col(csuTcaOned, answerCol);
+            var itemResponseArr = curFormLatestResp.getItemResponses();
+            for (var er = 0; er < itemResponseArr.length; er++) {
+              var curItemResp = itemResponseArr[er];
+              var curItemRespId = curItemResp.getItem().getId();
+              if (curItemRespId == curItemId) {
+                var userAnswer = curItemResp.getResponse();
+                logs_tst('The coordinates of the answer cell are (row, col)' + '(' + curFormUserRow + ',' + answerColPosCsu + ')');
+                break;
+              }
+              else if (curItemRespId != curItemId && er != (itemResponseArr.length -1)) {
+                continue;
+              }
+              else if (curItemRespId != curItemId && er == (itemResponseArr.length -1)) {
+                var userAnswer = csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).getValue();
+              }
+            }
+            logs_tst('The answer for Question ' + itemQuest + ' is ' + userAnswer);
+            csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).setValue(userAnswer);
+            logs_tst('Answer set in CSU sheet');
+          }
+          else {
+            continue;
+          }
+        }
       }
       else if (csuEmailOned[fe] != curFormUserEmail && fe != (csuEmailOned.length - 1)) {
-        logs_tst('User not found yet be we are not at the end of the array.');
         continue;
       }
       else if (csuEmailOned[fe] != curFormUserEmail && fe == (csuEmailOned.length - 1)) {
-        var curFormUserRow = '';
-        logs_tst('User not found user row is blank.');
+        missingUserArr.push(csuEmailOned[fe]);
+        logs_tst('User not found in Scrive User Email Row.');
         break;
       }
       else {
@@ -264,50 +301,10 @@ function get_form_resp() {
         ui.alert('something went wrong #1');
       }
     }
-    if (curFormUserRow == '') {
-      logs_tst('User email ' + curFormUserEmail + ' does not exist in the current scrive users sheet.');
-      continue;
-    }
-    logs_tst('Form item find and replace has started');
-    for (var ia = 0; ia < curFormItemArr.length; ia++) {
-      var curItemType = curFormItemArr[ia].getType();
-      if (curItemType == FormApp.ItemType.TEXT || curItemType == FormApp.ItemType.MULTIPLE_CHOICE || curItemType == FormApp.ItemType.PARAGRAPH_TEXT) {
-        var itemQuest = curFormItemArr[ia].getTitle();
-        logs_tst('The question is ' + itemQuest);
-        var curItemId = curFormItemArr[ia].getId();
-        logs_tst('The item ID is ' + curItemId);
-        var questIndex = fqsQOned.indexOf(itemQuest);
-        logs_tst('The index of this question in the question array is ' + questIndex);
-        var questRow = questIndex + 2;
-        var answerCol = fqs.getRange(questRow, fqsAnsColHeadColPos, 1, 1).getValue();
-        var answerColPosCsu = find_col(csuTcaOned, answerCol);
-        var itemResponseArr = curFormLatestResp.getItemResponses();
-        for (var er = 0; er < itemResponseArr.length; er++) {
-          var curItemResp = itemResponseArr[er];
-          var curItemRespId = curItemResp.getItem().getId();
-          if (curItemRespId == curItemId) {
-            var userAnswer = curItemResp.getResponse();
-            logs_tst('The coordinates of the answer cell are (row, col)' + '(' + curFormUserRow + ',' + answerColPosCsu + ')');
-            break;
-          }
-          else if (curItemRespId != curItemId && er != (itemResponseArr.length -1)) {
-            logs_tst('ID not found but we are not at the end of the array yet.')
-            continue;
-          }
-          else if (curItemRespId != curItemId && er == (itemResponseArr.length -1)) {
-            var userAnswer = csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).getValue();
-          }
-        }
-        logs_tst('The answer for Question ' + itemQuest + ' is ' + userAnswer);
-        csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).setValue(userAnswer);
-        logs_tst('Answer set in CSU sheet');
-      }
-      else {
-        continue;
-      }
-    }
+    continue;
   }
   logs_tst(formIdArr);
+  logs_tst('The Missing users are: ' + missingUserArr);
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Get Forms', compLogs);
 }
@@ -316,6 +313,10 @@ function get_form_resp() {
 //if a form does not have a response it will push the form name into an array which will be presented as a list in my emailTo
 
 function check_for_resp() {
+
+  var missingResponses = [];
+  var answeredNotRecorded = [];
+
 
   var formIdArr = [];
   var scriveForms = DriveApp.searchFiles('title contains "Scrive User Review" and mimeType contains "form"');
@@ -332,13 +333,16 @@ function check_for_resp() {
     var mostRecentResp = formResponses[fromLatestResp];
     if (fromLatestResp < 0) {
       var respondingUser = 'There are no responses';
+      missingResponses.push(formName);
     }
     else {
       var respondingUser = mostRecentResp.getRespondentEmail();
+      answeredNotRecorded.push(formName);
     }
     logs_tst('Form Title = ' + formName + '. This form has ' + formResponses.length + '. The latest reponse is from ' + respondingUser);
   }
-  logs_tst(formIdArr);
+  logs_tst('The following forms have not been responded to: ' + missingResponses);
+  logs_tst('The following forms have been responded to but have not been recorded in the spreadsheet: ' + answeredNotRecorded);
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: check for responses', compLogs);
 }
@@ -364,6 +368,8 @@ function delete_forms_based_on_id() {
   var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
   var csuFormIdOned = flatten_arr(csuFormIdArr);
 
+  var deletedFormsArr = [];
+
   var formIdArr = [];
   var scriveForms = DriveApp.searchFiles('title contains "Scrive User Review" and mimeType contains "form"');
   while (scriveForms.hasNext()) {
@@ -372,25 +378,23 @@ function delete_forms_based_on_id() {
   }
 
   for (var ftd = 0; ftd < csuFormIdOned.length; ftd++) {
-    logs_tst('Form Id from csu array = ' + csuFormIdOned[ftd]);
     if (csuFormIdOned[ftd] == '') {
-      logs_tst('csu Form ID is blank');
       continue;
     }
     for (var df = 0; df < formIdArr.length; df++) {
-      logs_tst('csu arry id = ' + csuFormIdOned[ftd] + ' . The Form Id from our Forms array = ' + formIdArr[df]);
       if (formIdArr[df] == csuFormIdOned[ftd]) {
+        var curFormTitle = FormApp.openById(csuFormIdOned[ftd]).getTitle();
+        deletedFormsArr.push(curFormTitle);
         var curFormToDelete = DriveApp.getFileById(csuFormIdOned[ftd]);
         curFormToDelete.setTrashed(true);
         logs_tst('Form with ID ' + csuFormIdOned[ftd] + ' was deleted.');
         break;
       }
       else if (formIdArr[df] != csuFormIdOned[ftd] && df != (formIdArr.length -1 )) {
-        logs_tst('the form ID in the spreadsheet does not match the form in the arr, but we are not at the tend of the arr.');
         continue;
       }
       else if (formIdArr[df] != csuFormIdOned[ftd] && df == (formIdArr.length -1 )) {
-        logs_tst('The form is not in the spreadsheet ' + csuFormIdOned[ftd]);
+        logs_tst('The form ' + csuFormIdOned[ftd] + ' is not in the formIdArr.');
         break;
       }
       else {
@@ -399,6 +403,9 @@ function delete_forms_based_on_id() {
       }
     }
   }
+  logs_tst(deletedFormsArr);
+  var compLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Delete completed Forms', compLogs);
 }
 
 function send_reminder_email() {
