@@ -410,6 +410,8 @@ function delete_forms_based_on_id() {
 
 function send_reminder_email() {
 
+  var emailSentArr = [];
+
   var csu = ss.getSheetByName('Current Scrive Users');
   var csuLr = csu.getLastRow();
   var csuLc = csu.getLastColumn();
@@ -432,15 +434,18 @@ function send_reminder_email() {
     if (csuFormIdOned[sre] == '') {
       var csuUserRow = sre + 2;
       var csuUserEmail = (csuUserRow, csuEmailColPos, 1, 1).getValue();
-      var emailSubject = 'Scrive User Review: Please complete in one week';
+      var emailSubject = 'Scrive User Review: From Reminder';
       var emailBody = {}
       emailBody.htmlBody = 'Hello '+ ',' + '<br />' + ' <br />' +
-      'According to our records you have not completed the Scrive User Review form previously sent to you. Please complete this form within the next day. Thank you for your help!'  + '<br />' + 'All the best,' + '<br />' + '<br />' + 'Gibson'
+      'According to our records you have not completed the Scrive User Review form previously sent to you. Please complete this form within the next two days. Thank you for your help!'  + '<br />' + 'All the best,' + '<br />' + '<br />' + 'Gibson'
       MailApp.sendEmail(csuUserEmail, emailSubject, '', emailBody);
-      //send email
+      emailSentArr.push[csuUserEmail];
     }
     else {
       continue;
     }
   }
+  logs_tst('Emails were sent to the following users: ' + emailSentArr);
+  var compLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Reminder Sent Logs', compLogs);
 }
