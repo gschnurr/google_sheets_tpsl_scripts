@@ -252,6 +252,10 @@ function pp_form_gen() {
           logs_tst('All items are added for ' + appToUpdate);
         } //end of the loop for currentBO applications loop
         logs_tst('All applications are added to the form. ' + u + ' applications were added.');
+        ScriptApp.newTrigger('on_Form_Sub_Bo_Trigger')
+          .forForm(userUpdatesForm)
+          .onFormSubmit()
+          .create();
         var responseUrl = userUpdatesForm.getPublishedUrl();
           var emailTo = boOfCurFormCre;
           var subject = 'Test - Please ignore this, this is just for testing purposes.';
@@ -289,6 +293,10 @@ function pp_form_gen() {
       } // end of the else right above this
     } //end of the forloop for the check against boFormComArr
   } //end of the while loops
+  logs_tst('The max number of triggers have been reached.');
+  var trigLimReachedLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', trigLimReachedLogs);
+  ui.alert('OPERATION COMPLETE/WARNING: Maximum number of triggers exceeded.');
 } //end of the function
 
 function on_Form_Sub_Bo_Trigger(e) {

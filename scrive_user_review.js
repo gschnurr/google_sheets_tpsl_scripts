@@ -78,6 +78,14 @@ function user_form() {
   var csuEmailColPos = find_col(csuTcaOned, 'Email');
   var csuUserArr = csu.getRange(2, csuUserColPos, csuLr, 1).getValues();
   var csuUserOned = flatten_arr(csuUserArr);
+  var csuEmailArr = csu.getRange(2, csuEmailColPos, csuLr, 1).getValues();
+  var csuEmailOned = flatten_arr(csuEmailArr);
+  var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
+  var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
+  var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
 
   var fqs = ss.getSheetByName('Form Questions');
   var fqsLr = fqs.getLastRow();
@@ -109,6 +117,8 @@ function user_form() {
     if (curUserTeam != 'IT' && curUserTeam != 'Legal') {
       var csuUserForm = FormApp.create('Scrive User Review - ' + curUser + '.').setCollectEmail(true);
       csuUserForm.setTitle('Scrive User Review - ' + curUser + '.');
+      var csuUserFormId = csuUserform.getId();
+      csu.getRange(csuCurUserRow, csuFormIdColPos, 1, 1).setValue(csuUserFormId);
         var sectionHeader = csuUserForm.addSectionHeaderItem();
           sectionHeader.setTitle('Please Answer the below questions in terms of how you use Scrive to complete your work.');
           if (curUserUsage != '') {
@@ -205,6 +215,9 @@ function get_form_resp() {
   var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
   var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
   var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
 
   var fqs = ss.getSheetByName('Form Questions');
   var fqsLr = fqs.getLastRow();
@@ -228,6 +241,7 @@ function get_form_resp() {
   }
 
   var missingUserArr = [];
+  var compFormRecAnsArr = [];
 
   for (var fi = 0; fi < formIdArr.length; fi++) {
     var curForm = FormApp.openById(formIdArr[fi]);
@@ -248,18 +262,15 @@ function get_form_resp() {
     for (var fe = 0; fe < csuEmailOned.length; fe++){
       if (csuEmailOned[fe] == curFormUserEmail) {
         var curFormUserRow = fe + 2;
-        logs_tst('User Email found in CSU, user is in row ' + curFormUserRow);
-        csu.getRange(curFormUserRow, csuFormIdColPos, 1, 1).setValue(formIdArr[fi]);
+        csu.getRange(curFormUserRow, csuRepsondedColPos, 1, 1).setValue('Yes');
+        compFormRecAnsArr.push(curFormUserEmail);
         logs_tst('Form item find and replace has started');
         for (var ia = 0; ia < curFormItemArr.length; ia++) {
           var curItemType = curFormItemArr[ia].getType();
           if (curItemType == FormApp.ItemType.TEXT || curItemType == FormApp.ItemType.MULTIPLE_CHOICE || curItemType == FormApp.ItemType.PARAGRAPH_TEXT) {
             var itemQuest = curFormItemArr[ia].getTitle();
-            logs_tst('The question is ' + itemQuest);
             var curItemId = curFormItemArr[ia].getId();
-            logs_tst('The item ID is ' + curItemId);
             var questIndex = fqsQOned.indexOf(itemQuest);
-            logs_tst('The index of this question in the question array is ' + questIndex);
             var questRow = questIndex + 2;
             var answerCol = fqs.getRange(questRow, fqsAnsColHeadColPos, 1, 1).getValue();
             var answerColPosCsu = find_col(csuTcaOned, answerCol);
@@ -269,7 +280,6 @@ function get_form_resp() {
               var curItemRespId = curItemResp.getItem().getId();
               if (curItemRespId == curItemId) {
                 var userAnswer = curItemResp.getResponse();
-                logs_tst('The coordinates of the answer cell are (row, col)' + '(' + curFormUserRow + ',' + answerColPosCsu + ')');
                 break;
               }
               else if (curItemRespId != curItemId && er != (itemResponseArr.length -1)) {
@@ -279,7 +289,6 @@ function get_form_resp() {
                 var userAnswer = csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).getValue();
               }
             }
-            logs_tst('The answer for Question ' + itemQuest + ' is ' + userAnswer);
             csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).setValue(userAnswer);
             logs_tst('Answer set in CSU sheet');
           }
@@ -303,7 +312,7 @@ function get_form_resp() {
     }
     continue;
   }
-  logs_tst(formIdArr);
+  logs_tst('The answers for the following users have been recorded: ' + compFormRecAnsArr);
   logs_tst('The Missing users are: ' + missingUserArr);
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Get Forms', compLogs);
@@ -347,7 +356,7 @@ function check_for_resp() {
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: check for responses', compLogs);
 }
 
-
+// this needs to be reworked
 function delete_forms_based_on_id() {
 
   var csu = ss.getSheetByName('Current Scrive Users');
@@ -367,6 +376,9 @@ function delete_forms_based_on_id() {
   var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
   var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
   var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
 
   var deletedFormsArr = [];
 
@@ -377,40 +389,47 @@ function delete_forms_based_on_id() {
     formIdArr.push(curFormIt.getId());
   }
 
-  for (var ftd = 0; ftd < csuFormIdOned.length; ftd++) {
-    if (csuFormIdOned[ftd] == '') {
+  for (var ftd = 0; ftd < csuRespondedOned.length; ftd++) {
+    var curCsuRow = ftd + 2;
+    if (csuRespondedOned[ftd] == 'Yes' || csuRespondedOned[ftd] == 'yes' || csuRespondedOned[ftd] == 'y' || csuRespondedOned[ftd] == 'Y') {
+      var curCsuRowFormId = csu.getRange(curCsuRow, csuFormIdColPos, 1, 1).getValue();
+      for (var df = 0; df < formIdArr.length; df++) {
+        if (formIdArr[df] == curCsuRowFormId) {
+          var curFormTitle = FormApp.openById(curCsuRowFormId).getTitle();
+          deletedFormsArr.push(curFormTitle);
+          var curFormToDelete = DriveApp.getFileById(curCsuRowFormId);
+          curFormToDelete.setTrashed(true);
+          logs_tst('Form with ID ' + curCsuRowFormId + ' was deleted.');
+          break;
+        }
+        else if (formIdArr[df] != curCsuRowFormId && df != (formIdArr.length -1 )) {
+          continue;
+        }
+        else if (formIdArr[df] != curCsuRowFormId && df == (formIdArr.length -1 )) {
+          logs_tst('The form ' + curCsuRowFormId + ' is not in the formIdArr.');
+          break;
+        }
+        else {
+          logs_tst('Something went wrong and we hit the else statement of the if.');
+          break;
+        }
+      }
+    }
+    else {
+      logs_tst('Row ' + curCsuRow + ' is blank or no response.');
       continue;
     }
-    for (var df = 0; df < formIdArr.length; df++) {
-      if (formIdArr[df] == csuFormIdOned[ftd]) {
-        var curFormTitle = FormApp.openById(csuFormIdOned[ftd]).getTitle();
-        deletedFormsArr.push(curFormTitle);
-        var curFormToDelete = DriveApp.getFileById(csuFormIdOned[ftd]);
-        curFormToDelete.setTrashed(true);
-        logs_tst('Form with ID ' + csuFormIdOned[ftd] + ' was deleted.');
-        break;
-      }
-      else if (formIdArr[df] != csuFormIdOned[ftd] && df != (formIdArr.length -1 )) {
-        continue;
-      }
-      else if (formIdArr[df] != csuFormIdOned[ftd] && df == (formIdArr.length -1 )) {
-        logs_tst('The form ' + csuFormIdOned[ftd] + ' is not in the formIdArr.');
-        break;
-      }
-      else {
-        logs_tst('Something went wrong and we hit the else statement of the if.');
-        break;
-      }
-    }
   }
-  logs_tst(deletedFormsArr);
+  logs_tst('The Forms to be deleted are ' + deletedFormsArr);
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Delete completed Forms', compLogs);
 }
 
-function send_reminder_email() {
+function match_form_id_to_user() {
 
-  var emailSentArr = [];
+  var csuUsersToMailArr = [];
+  var csuUserRowArr = [];
+  var emailsToSendArr= [];
 
   var csu = ss.getSheetByName('Current Scrive Users');
   var csuLr = csu.getLastRow();
@@ -429,23 +448,115 @@ function send_reminder_email() {
   var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
   var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
   var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
 
+//this doesnt really need the IT and legal check
   for (var sre = 0; sre < csuFormIdOned.length; sre++) {
-    if (csuFormIdOned[sre] == '') {
-      var csuUserRow = sre + 2;
-      var csuUserEmail = (csuUserRow, csuEmailColPos, 1, 1).getValue();
+    var csuUserRow = sre + 2;
+    var userTeam = csu.getRange(csuUserRow, csuTeamColPos, 1, 1).getValue();
+    if (csuFormIdOned[sre] == '' && userTeam != 'IT' && userTeam != 'Legal') {
+      var csuUserEmail = csu.getRange(csuUserRow, csuEmailColPos, 1, 1).getValue();
+      var csuUser = csu.getRange(csuUserRow, csuUserColPos, 1, 1).getValue();
       var emailSubject = 'Scrive User Review: From Reminder';
-      var emailBody = {}
-      emailBody.htmlBody = 'Hello '+ ',' + '<br />' + ' <br />' +
-      'According to our records you have not completed the Scrive User Review form previously sent to you. Please complete this form within the next two days. Thank you for your help!'  + '<br />' + 'All the best,' + '<br />' + '<br />' + 'Gibson'
-      MailApp.sendEmail(csuUserEmail, emailSubject, '', emailBody);
-      emailSentArr.push[csuUserEmail];
+      emailsToSendArr.push(csuUserEmail);
+      csuUsersToMailArr.push(csuUser);
+      csuUserRowArr.push(csuUserRow);
     }
     else {
       continue;
     }
   }
-  logs_tst('Emails were sent to the following users: ' + emailSentArr);
+  var formIdArr = [];
+  var formNameArr = [];
+  var scriveForms = DriveApp.searchFiles('title contains "Scrive User Review" and mimeType contains "form"');
+  while (scriveForms.hasNext()) {
+    var curFormIt = scriveForms.next();
+    formIdArr.push(curFormIt.getId());
+    formNameArr.push(curFormIt.getName());
+  }
+
+  var formsNotFoundArr = [];
+
+  for (var fna = 0; fna < formNameArr.length; fna++) {
+    for (var cut = 0; cut < csuUsersToMailArr.length; cut++) {
+      var userArrFormName = 'Scrive User Review - ' + csuUsersToMailArr[cut] + '.';
+      if (formNameArr[fna] == userArrFormName) {
+        logs_tst('Forms matched ' + userArrFormName);
+        csu.getRange(csuUserRowArr[cut], csuFormIdColPos, 1, 1).setValue(formIdArr[fna]);
+        break;
+      }
+      else if (formNameArr[fna] != userArrFormName && cut != (csuUsersToMailArr.length -1)) {
+        continue;
+      }
+      else if (formNameArr[fna] != userArrFormName && cut == (csuUsersToMailArr.length -1))
+      logs_tst('Form Name ' + formNameArr[fna] + ' could not be found in the array.');
+      formsNotFoundArr.push(formNameArr[fna]);
+      break;
+    }
+  }
+  logs_tst('Missing Forms are ' + formsNotFoundArr);
   var compLogs = Logger.getLog();
-  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Reminder Sent Logs', compLogs);
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Form Id Set Logs', compLogs);
+}
+
+function send_reminder() {
+
+  var completedFormUsers= [];
+  var csuUsersToMail = [];
+
+  var csu = ss.getSheetByName('Current Scrive Users');
+  var csuLr = csu.getLastRow();
+  var csuLc = csu.getLastColumn();
+  var csuTcaArr = csu.getRange(1, 1, 1, csuLc).getValues();
+  var csuTcaOned = flatten_arr(csuTcaArr);
+  var csuUserColPos = find_col(csuTcaOned, 'User');
+  var csuUsageColPos = find_col(csuTcaOned, 'Usage');
+  var csuLastUsageDateColPos = find_col(csuTcaOned, 'Last Date Used');
+  var csuTeamColPos = find_col(csuTcaOned, 'Team');
+  var csuEmailColPos = find_col(csuTcaOned, 'Email');
+  var csuUserArr = csu.getRange(2, csuUserColPos, csuLr, 1).getValues();
+  var csuUserOned = flatten_arr(csuUserArr);
+  var csuEmailArr = csu.getRange(2, csuEmailColPos, csuLr, 1).getValues();
+  var csuEmailOned = flatten_arr(csuEmailArr);
+  var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
+  var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
+  var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
+
+  for (var sem = 0; sem < csuRespondedOned.length; sem++) {
+    var curCsuRow = sem + 2;
+    var curUser = csu.getRange(curCsuRow, csuUserColPos, 1, 1).getValue();
+    if (csuRespondedOned[sem] == 'Yes' || csuRespondedOned[sem] == 'yes' || csuRespondedOned[sem] == 'y' || csuRespondedOned[sem] == 'Y') {
+      completedFormUsers.push(curUser);
+      continue;
+    }
+    else {
+      var curFormId = csu.getRange(curCsuRow, csuFormIdColPos, 1, 1).getValue();
+      if (curFormId != '') {
+        var curUserEmail = csu.getRange(curCsuRow, csuEmailColPos, 1, 1).getValue();
+        var curForm = FormApp.openById(curFormId);
+        var responseUrl = curForm.getPublishedUrl();
+        var emailSubject = 'Scrive User Review: Reminder';
+        var emailBody = {}
+        emailBody.htmlBody = 'Hello ' + curUser + ',' + '<br />' + ' <br />' +
+        'We have not yet recieved a response to our earlier survey. Please fill out the form in the link provided '+ '<a href=\"' + responseUrl + '">here. </a>' +
+        'IT is working to review the current users in Scrive to get a better understanding of the work being performed in the system ' +
+        'and to free up inactive license users. If you have already filled out the survey please respond to this email with that information.' + '<br />' + '<br />' + 'All the best,' + '<br />' + 'Gibson'
+        //MailApp.sendEmail(curUserEmail, emailSubject, '', emailBody);
+        csuUsersToMail.push(curUser);
+        logs_tst('Email Sent');
+      }
+      else {
+        continue;
+      }
+    }
+  }
+  logs_tst('The following users have already completed the form ' + completedFormUsers);
+  logs_tst('The following users will be sent reminder emails ' + csuUsersToMail);
+  var compLogs = Logger.getLog();
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Reminder Email Logs', compLogs);
 }
