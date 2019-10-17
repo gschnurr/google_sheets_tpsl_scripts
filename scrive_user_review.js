@@ -560,3 +560,71 @@ function send_reminder() {
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Scrive Form Script: Reminder Email Logs', compLogs);
 }
+
+function update_Dashboard() {
+
+  var totalForms = 0;
+  var formsAnswered = 0;
+  var formsAnalyzed = 0;
+  var totalUsers = 0;
+  var csu = ss.getSheetByName('Current Scrive Users');
+  var csuLr = csu.getLastRow();
+  var csuLc = csu.getLastColumn();
+  var csuTcaArr = csu.getRange(1, 1, 1, csuLc).getValues();
+  var csuTcaOned = flatten_arr(csuTcaArr);
+  var csuUserColPos = find_col(csuTcaOned, 'User');
+  var csuUsageColPos = find_col(csuTcaOned, 'Usage');
+  var csuLastUsageDateColPos = find_col(csuTcaOned, 'Last Date Used');
+  var csuTeamColPos = find_col(csuTcaOned, 'Team');
+  var csuEmailColPos = find_col(csuTcaOned, 'Email');
+  var csuUserArr = csu.getRange(2, csuUserColPos, csuLr, 1).getValues();
+  var csuUserOned = flatten_arr(csuUserArr);
+  var csuEmailArr = csu.getRange(2, csuEmailColPos, csuLr, 1).getValues();
+  var csuEmailOned = flatten_arr(csuEmailArr);
+  var csuFormIdColPos = find_col(csuTcaOned, 'Form Id');
+  var csuFormIdArr = csu.getRange(2, csuFormIdColPos, csuLr, 1).getValues();
+  var csuFormIdOned = flatten_arr(csuFormIdArr);
+  var csuRepsondedColPos = find_col(csuTcaOned, 'Repsonded?');
+  var csuRespondedArr = csu.getRange(2, csuRepsondedColPos, csuLr, 1).getValues();
+  var csuRespondedOned = flatten_arr(csuRespondedArr);
+  var csuAnalysedColPos = find_col(csuTcaOned, 'Results Analyzed?');
+  var csuAnalysedArr = csu.getRange(2, csuAnalysedColPos, csuLr, 1).getValues();
+  var csuAnalysedOned = flatten_arr(csuAnalysedArr);
+
+  var dbs = ss.getSheetByName('Dashboard');
+  var dbsLr = dbs.getLastRow();
+  var dbsLc = dbs.getLastColumn();
+  var dbsTcaArr = dbs.getRange(1, 1, 1, dbsLc).getValues();
+  var dbsTcaOned = flatten_arr(dbsTcaArr);
+  var dbsTcofColPos = find_col(dbsTcaOned, 'Total Count of Forms');
+  var dbsNumAnsColPos = find_col(dbsTcaOned, 'Number Answered');
+  var dbsNumAnalColPos = find_col(dbsTcaOned, 'Number Analyzed');
+  var dbsTotalUsersColPos = find_col(dbsTcaOned, 'Total Users');
+
+  for (var dbu = 0; dbu < csuUserOned.length; dbu++) {
+    var curUserRow = dbu + 2;
+    var curUser = csu.getRange(curUserRow, csuUserColPos, 1, 1).getValue();
+    var curFormId = csu.getRange(curUserRow, csuFormIdColPos, 1, 1).getValue();
+    var curResponse = csu.getRange(curUserRow, csuRepsondedColPos, 1, 1).getValue();
+    var curAnalyzed = csu.getRange(curUserRow, csuAnalysedColPos, 1, 1).getValue();
+
+    if (curUser != '') {
+      totalUsers++;
+    }
+    if(curFormId != '') {
+      totalForms++;
+    }
+    if (curResponse != '') {
+      formsAnswered++;
+    }
+    if (curAnalyzed != '') {
+      formsAnalyzed++;
+
+    }
+  }
+  logs_tst(totalForms + ' ' + formsAnswered + ' ' + formsAnalyzed);
+  dbs.getRange(2, dbsTotalUsersColPos, 1, 1).setValue(totalUsers);
+  dbs.getRange(2, dbsTcofColPos, 1, 1).setValue(totalForms);
+  dbs.getRange(2, dbsNumAnsColPos, 1, 1).setValue(formsAnswered);
+  dbs.getRange(2, dbsNumAnalColPos, 1, 1).setValue(formsAnalyzed);
+}
