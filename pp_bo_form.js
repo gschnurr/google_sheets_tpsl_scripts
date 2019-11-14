@@ -1,6 +1,9 @@
+//remove trigger from all of the code
+//create script to gather answers by looping through the drive
+//format forms - they look gross they need titles, questions, better email
+
 function pp_form_gen() {
 
-//need to seperate variables into static and dynamic
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
@@ -8,6 +11,8 @@ function pp_form_gen() {
   var ppeLr = ppe.getLastRow(); //dynamic
   var ppeLc = ppe.getLastColumn(); //dynamic
   var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
+  var nowDate = new Date();
+  var startTime = new Date(nowDate.getTime());
 
   //this array contains the choices for vendor category
   var vendorCatArr = ['Agencies', 'Commercial Partners', 'Credit Reference and Fraud Agencies',
@@ -71,6 +76,7 @@ function pp_form_gen() {
   //creates 1d array of the title row values for the ppe spreadsheet
   var ppeOned = flatten_arr(ppeTitleColumnArr);
   logs_tst('PPE title row array created.');
+
   //finds the position of the business system owner column grabs all of the data in that column and creates a 1d array and removes the last blank value
   var busSysOwnColPos = find_col(ppeOned, 'Business System Owner');
   var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
@@ -89,13 +95,13 @@ function pp_form_gen() {
   //an array of the bo's who have been looped through to prevent creating multiple forms for one user
   var boFormComArr = [''];
   var bson = 0;
-  var activeTriggerPrompt = ui.prompt('How many active form response triggers are there for this script?').getResponseText();
-  var userInFormsSentNum = Number(activeTriggerPrompt); // this will be the response from a prompt about the numebr of active triggers left if there is a save point
-  var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //needs to be inside loop the as well this is the first initilization
+  var runTimeDateCheck = new Date(); //creates a date when we get to this segment
+  var currentTime = new Date(runTimeDateCheck.getTime()); //turns the date to an integer representing ms
+  var currentRunTime = currentTime - startTime; //total amount of time elapsed since the beginning of the script
 //beginning of actual function
-  while (numFormsSent < 20) {
-    logs_tst('Number of forms sent = ' + numFormsSent + '.');
-    //create the one dimensional array of all the business owners the BO column for this iteration
+  while (currentRunTime < 300000) {
+    logs_tst('Current Run Time = ' + currentRunTime + '.');
+    //create the one dimensional array of all the business owners in the BO column for this iteration
     var ppeLr = ppe.getLastRow();
     var busSysOwnerArr = ppe.getRange(2, busSysOwnColPos, ppeLr, 1).getValues();
     var bsoOned = flatten_arr(busSysOwnerArr);
@@ -105,17 +111,19 @@ function pp_form_gen() {
     var appNameArr = ppe.getRange(2, appNameColPos, ppeLr, 1).getValues();
     var appNameOned = flatten_arr(appNameArr);
 
+    //checking if there are unique BOs left in the array
     if (bsoOned.length > 0 && bson < bsoOned.length) {
       var boToCheck = bsoOned[bson];
       logs_tst('BOArry Loop prior to check, BO = ' + boToCheck);
     }
     else {
-      logs_tst('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '.');
+      logs_tst('bsoOned.length = ' + bsoOned.length + '. and/or bson = ' + bson + '. All forms sent. Script execution completed.');
       var compLogs = Logger.getLog();
       MailApp.sendEmail('gibson.schnurr@izettle.com', 'PP BO Form Script', compLogs);
       ui.alert('OPERATION COMPLETE: There are no unique business system owners left.')
       return;
     }
+    //looping through the array of BOs who have already been sent a form
     for (var c = 0; c < boFormComArr.length; c++) {
       logs_tst('BOs that have been used are ' + boFormComArr);
       // if the first current item in the completed array = the current bo then go to the next bo
@@ -157,7 +165,7 @@ function pp_form_gen() {
         for (var u = 0; u < boAppsRowNumArr.length; u++) {
           var appToUpdate = boAppsArr[u];
           userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
-          logs_tst('the first application is ' + appToUpdate);
+          logs_tst('the application is ' + appToUpdate);
           for (var v = 0; v < gdprBoColPosArr.length; v++) {
             var colTitle = gdprBoTColArr[v];
             var colHelpText = ppe.getRange(1, gdprBoColPosArr[v], 1, 1).getNotes();
@@ -169,7 +177,7 @@ function pp_form_gen() {
             else {
               currentInfoCheck = currentInfo;
             }
-            //create an if statement here depending on the column if it is yes no make it a yes know response
+            //create an if statement here depending on the column if it is yes no make it a yes no response
             if (colTitle == 'GDPR Data (Y,N)') {
               var multiChoice = userUpdatesForm.addMultipleChoiceItem().setRequired(false);
                 multiChoice.setTitle(colTitle)
@@ -279,8 +287,10 @@ function pp_form_gen() {
             }
           }
         }
-        var numFormsSent = (userInFormsSentNum + boFormComArr.length - 1); //we want to reevaluate the length of the check arry each iteration
-        logs_tst('Number of forms sent = ' + numFormsSent + '.');
+        var runTimeDateCheck = new Date();
+        var currentTime = new Date(runTimeDateCheck.getTime());
+        var currentRunTime = currentTime - startTime;
+        logs_tst('Current Run Time = ' + currentRunTime + '.');
         logs_tst('All applications for ' + boOfCurFormCre + ' have been deleted.');
         break;
       } //end of the elseif for creating a new form for user not found in the check array
