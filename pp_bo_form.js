@@ -338,6 +338,7 @@ function getResp_update(form, updateSheet) {
     formIdArr.push(ppBoFormIt.getId());
   }
 
+
 // Looping through the newly created formID array
   for (var fi = 0; fi < formIdArr.length; fi++) {
     var curForm = FormApp.openById(formIdArr[fi]);
