@@ -14,6 +14,9 @@ var expGen = ss.getSheetByName('Export Generator');
 var tz = ss.getSpreadsheetTimeZone();
 var date = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
 var exportName = 'Generic Export ' + date;
+var msPerDay = 1000* 60* 60* 24; //this is the number of milliseconds in a day the getTime function works on miliseconds going back to 1970
+// to elaborate getTime gets the time of the current date as an integer in ms from Jan 1 1970 at 00:00 so 1 ms past that is represented in the getTime
+//function as 1
 
 //Data
 var tpslLc = tpsl.getLastColumn();
