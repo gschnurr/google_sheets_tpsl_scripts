@@ -144,8 +144,8 @@ function pp_form_gen() {
         //defining the currentBO Email as a variable and adding that BO to the already used array
         var boOfCurFormCre = boToCheck;
         boFormComArr.unshift(boOfCurFormCre);
-        var userUpdatesForm = FormApp.create(boOfCurFormCre + ' Applications');
-        userUpdatesForm.setTitle(boOfCurFormCre + ' Applications');
+        var userUpdatesForm = FormApp.create(boOfCurFormCre + ': Application Business Owner GDPR Data Review');
+        userUpdatesForm.setTitle(boOfCurFormCre + ': Application Business Owner GDPR Data Review');
         //initial empty arrays for the currentBos app information
         var boAppsRowNumArr = [];
         var boAppsArr = [];
@@ -327,16 +327,38 @@ function on_Form_Sub_Bo_Trigger(e) {
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
 }
 
-function get_file_by_trigger_id(triggerId) {
-  var triggers = ScriptApp.getProjectTriggers();
-  for(var t = 0; t < triggers.length; t++){
-    if (triggers[t].getUniqueId() == triggerId) {
-      return triggers[t].getTriggerSourceId();
-    }
-  }
-}
-
 function getResp_update(form, updateSheet) {
+
+//beginning of the rebuild
+// Creating an array of all of the forms that meet the criteria of title and mimeType
+  var formIdArr = [];
+  var ppBoForms = DriveApp.searchFiles('title contains "Applications" and mimeType contains "form"');
+  while (ppBoFomrs.hasNext()) {
+    var ppBoFormIt = ppBoForms.next();
+    formIdArr.push(ppBoFormIt.getId());
+  }
+
+
+// Looping through the newly created formID array
+  for (var fi = 0; fi < formIdArr.length; fi++) {
+    var curForm = FormApp.openById(formIdArr[fi]);
+    logs_tst('The Form id is' + formIdArr[fi]);
+    var curFormItemArr = curForm.getItems();
+    var curFormResponses = curForm.getResponses();
+    var formLastResponseInt = curFormResponses.length - 1;
+    var curFormLatestResp = curFormResponses[formLastResponseInt];
+    if (formLastResponseInt < 0) {
+      var curFormUserEmail = 'There are no responses';
+      logs_tst('There are no responses for this form so we will move to the next form.');
+      continue;
+    }
+    else {
+      var curFormUserEmail = curFormLatestResp.getRespondentEmail();
+  }
+  logs_tst('The respondent to this form was ' + curFormUserEmail);
+  }
+
+//original code start
   var itemArr = form.getItems();
   logs_tst('The Form is ' + form.getTitle());
   logs_tst('The update sheet is ' + updateSheet.getSheetName());
@@ -429,3 +451,90 @@ function getResp_update(form, updateSheet) {
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'On Form Sub Logs Comp Log', compLogs1);
   logs_tst('The for loop has ended.');
 }
+
+
+
+
+
+//Scrive user Review code
+  var formIdArr = [];
+  var scriveForms = DriveApp.searchFiles('title contains "Application Business Owner GDPR Data Review" and mimeType contains "form"');
+  while (scriveForms.hasNext()) {
+    var curFormIt = scriveForms.next();
+    formIdArr.push(curFormIt.getId());
+  }
+
+  var missingUserArr = [];
+  var compFormRecAnsArr = [];
+
+  for (var fi = 0; fi < formIdArr.length; fi++) {
+    var curForm = FormApp.openById(formIdArr[fi]);
+    logs_tst('The Form iD ' + formIdArr[fi]);
+    var curFormItemArr = curForm.getItems();
+    var curFormResponses = curForm.getResponses();
+    var formLastResponseInt = curFormResponses.length - 1;
+    var curFormLatestResp = curFormResponses[formLastResponseInt];
+    if (formLastResponseInt < 0) {
+      var curFormUserEmail = 'There are no responses';
+      logs_tst('There are no responses for this form so we will move to the next form.');
+      continue;
+    }
+    else {
+      var curFormUserEmail = curFormLatestResp.getRespondentEmail();
+    }
+    logs_tst('The respondent to this form was ' + curFormUserEmail);
+    for (var fe = 0; fe < csuEmailOned.length; fe++){
+      if (csuEmailOned[fe] == curFormUserEmail) {
+        var curFormUserRow = fe + 2;
+        csu.getRange(curFormUserRow, csuRepsondedColPos, 1, 1).setValue('Yes');
+        compFormRecAnsArr.push(curFormUserEmail);
+        logs_tst('Form item find and replace has started');
+        for (var ia = 0; ia < curFormItemArr.length; ia++) {
+          var curItemType = curFormItemArr[ia].getType();
+          if (curItemType == FormApp.ItemType.TEXT || curItemType == FormApp.ItemType.MULTIPLE_CHOICE || curItemType == FormApp.ItemType.PARAGRAPH_TEXT) {
+            var itemQuest = curFormItemArr[ia].getTitle();
+            var curItemId = curFormItemArr[ia].getId();
+            var questIndex = fqsQOned.indexOf(itemQuest);
+            var questRow = questIndex + 2;
+            var answerCol = fqs.getRange(questRow, fqsAnsColHeadColPos, 1, 1).getValue();
+            var answerColPosCsu = find_col(csuTcaOned, answerCol);
+            var itemResponseArr = curFormLatestResp.getItemResponses();
+            for (var er = 0; er < itemResponseArr.length; er++) {
+              var curItemResp = itemResponseArr[er];
+              var curItemRespId = curItemResp.getItem().getId();
+              if (curItemRespId == curItemId) {
+                var userAnswer = curItemResp.getResponse();
+                break;
+              }
+              else if (curItemRespId != curItemId && er != (itemResponseArr.length -1)) {
+                continue;
+              }
+              else if (curItemRespId != curItemId && er == (itemResponseArr.length -1)) {
+                var userAnswer = csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).getValue();
+              }
+            }
+            csu.getRange(curFormUserRow, answerColPosCsu, 1, 1).setValue(userAnswer);
+            logs_tst('Answer set in CSU sheet');
+          }
+          else {
+            continue;
+          }
+        }
+      }
+      else if (csuEmailOned[fe] != curFormUserEmail && fe != (csuEmailOned.length - 1)) {
+        continue;
+      }
+      else if (csuEmailOned[fe] != curFormUserEmail && fe == (csuEmailOned.length - 1)) {
+        missingUserArr.push(csuEmailOned[fe]);
+        logs_tst('User not found in Scrive User Email Row.');
+        break;
+      }
+      else {
+        logs_tst('something went wrong #1');
+        ui.alert('something went wrong #1');
+      }
+    }
+    continue;
+  }
+
+
