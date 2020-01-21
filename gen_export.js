@@ -53,7 +53,7 @@ function clean_export() {
   var sheetName = ss.getSheetName();
 
   for (var i=0; i < sheets.length; i++) {
-    if (sheets[i].getSheetName() != 'Generic Export' && != 'Form Generator') {
+    if (sheets[i].getSheetName() != 'Generic Export' && sheets[i].getSheetName() != 'Form Generator') {
       sheets[i].activate();
       spreadsheet.deleteActiveSheet();
     }

@@ -1,4 +1,4 @@
-function create_events() {
+function create_renewal_calendar() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();

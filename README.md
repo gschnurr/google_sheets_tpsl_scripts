@@ -14,3 +14,27 @@ Copy and paste the code into your script editor in google sheets. Work with me t
 </br>
 If you are just browsing the global variables have some decent functions to work with arrays and queries to your google sheets.
 </p>
+
+<b>Load Order:</b>
+<p>
+global_variables
+</br>
+global_functions
+</br>
+tpsl_on_open
+</br>
+tpsl_on_edit
+</br>
+wrappers
+</br>
+tpsl_gdpr
+</br>
+gen_export
+</br>
+pp_bo_form
+</br>
+scrive_user_review
+</br>
+contract_renewal_calendar
+</br>
+</p>
