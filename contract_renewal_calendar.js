@@ -80,7 +80,7 @@ function create_events() {
           logs_tst('Notice Period = ' + noticePeriod);
           var lastStartPeriod = tpsl.getRange(appRow, tcaAgreeStartDateColPos, 1, 1).getValue();
           logs_tst('Original Agreement Start Date = ' + lastStartPeriod);
-          if (noticePeriod == '') {
+          if (noticePeriod == '' || noticePeriod == 0) {
             var lastNoticeDate = agreeEndDate - (msPerDay * 90);
             var renewStartDate = lastNoticeDate - (msPerDay * 60);
             logs_tst('The tpsl notice period data does not exist. The Renewal Start Date will default to ' + renewStartDate);
