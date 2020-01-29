@@ -35,10 +35,7 @@ function create_renewal_calendar() {
   var renewalCalendar = CalendarApp.getCalendarById('izettle.com_r8m408f1j9rilitkkva4gaaqd8@group.calendar.google.com');
 
   for (var a = 0; a < appArrOned.length; a++) {
-    var response = ui.alert('Are you sure you want to continue?', ui.ButtonSet.YES_NO);
-    if (response == ui.Button.NO) {
-      return;
-    }
+    // for loop that loops through the app array
     var appRow = a + 4;
     logs_tst('Application Row = ' + appRow);
     var vendClass = tpsl.getRange(appRow, tcaVendClassColPos, 1, 1).getValue();
@@ -47,7 +44,9 @@ function create_renewal_calendar() {
     var rcdbFirstEmptyRow = rcdbLr + 1;
     var rcdbIdArr = rcdb.getRange(2, rcdbIdColPos, rcdbLr, 1).getValues();
     var rcdbIdArrOned = flatten_arr(rcdbIdArr);
+    // basic information found such as app row and vendor class
     if (vendClass == 'Tactical' || vendClass == 'Strategic') {
+      // here we are saying that if it equals tactical or strategic collect the below information and check if it has existing events
       logs_tst('____DB VALIDATION BEGUN_____');
       var appID = tpsl.getRange(appRow, tcaAppIdColPos, 1, 1).getValue();
       logs_tst('Application ID = ' + appID);
@@ -57,6 +56,7 @@ function create_renewal_calendar() {
       logs_tst('Application Manager = ' + appMan);
 
       for (c = 0; c < rcdbIdArrOned.length; c++) {
+        //checking for existing events
         var dbRow = c + 2;
         if (rcdbIdArrOned[c] == appID) {
           logs_tst('An event already exists for an application with this ID ' + appID);
@@ -68,7 +68,7 @@ function create_renewal_calendar() {
         else if (rcdbIdArrOned[c] != appID && c == (rcdbIdArrOned.length - 1)) {
           logs_tst('Event for ID does not exist ' + appID);
           logs_tst('____EVENT CREATION STARTED_____');
-          //date
+          //here we will check if the vendor Classification
           var agreeEndDate = tpsl.getRange(appRow, tcaAgreeEndDateColPos, 1, 1).getValue();
           if (agreeEndDate == '') {
             missingAppInfoArr.push(appName);
