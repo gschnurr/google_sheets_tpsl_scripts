@@ -28,7 +28,6 @@ function tpsl_pp_extract() {
   spreadsheet.getActiveSheet().setName('PayPal Extract');
   var ppe = ss.getSheetByName('PayPal Extract');
   logs_tst('PayPal Extract sheet created.');
-
   //paste value of specified range this should probably change from a paste function to a set function
   var tpslWholeSheetArr = tpslAllCells.getValues();
   ppe.getRange(1, 1, tpslLr, tpslLc).setValues(tpslWholeSheetArr);
@@ -41,7 +40,6 @@ function tpsl_pp_extract() {
   ppeAllCells.setNotes(tpslAllNotes);
   ppeAllCells.setDataValidations(tpslAllDvRules);
   logs_tst('TPSL notes and data validation settings copied to PPE Sheet');
-
   //deleting TPSL category title row as it is not needed
   ppe.deleteRow(1);
   //Copying format of title row from tpsl to ppe
@@ -50,47 +48,79 @@ function tpsl_pp_extract() {
   logs_tst('Format for title row copied from TPSL to PPE Spreadsheet');
   var ppeTcArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
   var ppeTcaOned = flatten_arr(ppeTcArr);
+
+//Below we allow the user to determine which column to filter the data on based upon a series of buttions (not great but there is not another easy way)
   var ppeGdprColPos = find_col(ppeTcaOned, 'GDPR Data (Y,N)');
-  var ppeGdprColFilItArr = ['Y'];
-  var gdprYesNoArry = ppe.getRange(2, ppeGdprColPos, ppeLr, 1).getValues();
-  var gdprYesNoOned = flatten_arr(gdprYesNoArry);
-  logs_tst('The gdpr column is in column ' + ppeGdprColPos + '. The values in that column are ' + gdprYesNoOned);
-  filter_rows(gdprYesNoOned, ppeGdprColFilItArr, ppe);
-  logs_tst('Row filtering complete');
+  var ppeEmpDataColPos = find_col(ppeTcaOned, 'Employee Data');
+  var ppeEndCusDataColPos = find_col(ppeTcaOned, 'End Customer Data');
+  var ppeMerchDataColPos = find_col(ppeTcaOned, 'Merchant Data');
+
+  var gdprFiltPrompt = ui.alert('Do you want to filter this data on the GDPR DATa (Y,N) column?', ui.ButtonSet.YES_NO);
+  if (gdprFiltPrompt == ui.Button.YES) {
+    var ppeGdprColFilItArr = ['Y', 'Yes', 'YES']; //what to filter on we use a function that finds the index of and if it is -1 then it deletes row
+    var gdprYesNoArry = ppe.getRange(2, ppeGdprColPos, ppeLr, 1).getValues();
+    var gdprYesNoOned = flatten_arr(gdprYesNoArry);
+    filter_rows(gdprYesNoOned, ppeGdprColFilItArr, ppe); //super interesting function actually good job past me
+    logs_tst('Row filtering complete');
+  }
+  else {
+    var empDataFiltPrompt = ui.alert('Do you want to filter this data on the Employee Data column?', ui.ButtonSet.YES_NO);
+    if (empDataFiltPrompt == ui.Button.YES) {
+      var ppeEmpDataColFilItArr = ['Y', 'Yes', 'YES'];
+      var empDataItArr = ppe.getRange(2, ppeEmpDataColPos, ppeLr, 1).getValues();
+      var empDataItArrOned = flatten_arr(empDataItArr);
+      filter_rows(empDataItArrOned, ppeEmpDataColFilItArr, ppe);
+      logs_tst('Row filtering complete');
+    }
+    else {
+      var endCusDataFiltPrompt = ui.alert('Do you want to filter this data on the End Customer Data column?', ui.ButtonSet.YES_NO);
+      if (endCusDataFiltPrompt == ui.Button.YES) {
+        var ppeEndCusDataColFilItArr = ['Y', 'Yes', 'YES'];
+        var endCusDataItArr = ppe.getRange(2, ppeEndCusDataColPos, ppeLr, 1).getValues();
+        var endCusDataItArrOned = flatten_arr(endCusDataItArr);
+        filter_rows(endCusDataItArrOned, ppeEndCusDataColFilItArr, ppe);
+        logs_tst('Row filtering complete');
+      }
+      else {
+        var merchDataFiltPrompt = ui.alert('Do you want to filter this data on the Merchant Data column?', ui.ButtonSet.YES_NO);
+        if (merchDataFiltPrompt == ui.Button.YES) {
+          var ppeMerchDataColFilItArr = ['Y', 'Yes', 'YES'];
+          var merchDataItArr = ppe.getRange(2, ppeMerchDataColPos, ppeLr, 1).getValues();
+          var merchDataItArrOned = flatten_arr(merchDataItArr);
+          filter_rows(merchDataItArrOned, ppeMerchDataColFilItArr, ppe);
+        }
+        else {
+          return;
+        }
+      }
+    }
+  }
   //freezing title row of ppe
   ppe.setFrozenRows(1);
-
   //deleting un-needed columns
   filter_cols(tcaOned, ppeColsArr, ppe);
   logs_tst('Column filtering complete.');
-
   // this inserts an additional column with the specified header
   var ppeLr = ppe.getLastRow();
   var ppeLc = ppe.getLastColumn();
   ppe.insertColumnAfter(ppeLc);
   ppe.getRange(1, (ppeLc + 1), 1, 1).setValue('Updates? (Y/N) If yes please make the updates in this sheet');
-
   //!!Note: The newly created sheet is not part of the array because the array is technically created before the ppe sheet was created!!
-
   //looping through sheets array to protect and hide
   for (var i=0; i < sheets.length; i++) {
     sheets[i].protect();
     sheets[i].hideSheet();
   }
-
   //copying entire spreadsheet for it to become the paypal extract in copying users drive
   spreadsheet.copy('PayPal Extract ' + date);
-
   //looping through sheets array to unprotect nad unhide
   for (var i=0; i < sheets.length; i++) {
     sheets[i].showSheet().activate();
     sheets[i].protect().remove();
   }
-
   //reseting to tpsl to before macro by deleting extract sheet and removing filter
   spreadsheet.deleteSheet(ppe);
   sheets[0].activate();
-
   var compLogs = Logger.getLog();
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'TPSL GDPR PPE Gen Logs', compLogs);
   //alert for end of macro
@@ -124,16 +154,30 @@ function get_updates() {
   logs_tst('All data set in the Review Updates Sheet');
 
 
-  //Copying format of title row from tpsl to ppe
+  //Copying format of title row from ppe to rus
   rus.getRange('A1').activate();
   ppe.getRange(1, 1, 1, ppeLc).copyTo(rus.getActiveRange(), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
   logs_tst('Title row formatting copied');
+
+
+
   //get originals for all items
   //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
+
+
+
+
+
+  //we might not need this if we change the below
   var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
   //number of columns in the GDPR column set
-  var tpslGdprEndCol = 9;
+  var tpslGdprEndCol = 9; //this needs to be fixed it cannot be a constant number I will needto change this find the matching column and update based on that
+
+
+
+
+
   //A 1d array of the IDs in the tpsl sheet
   var tpslOned = flatten_arr(tpslArray);
   //rus variables
@@ -141,14 +185,29 @@ function get_updates() {
   var rusLc = rus.getLastColumn();
   var rusTitleColumnArr = rus.getRange(1, 1, 1, rusLc).getValues();
   var rusLr = rus.getLastRow();
-  var rusRange = rus.getRange(2, 1, rusLr, 1);
+  var rusRange = rus.getRange(2, 1, rusLr, 1); //this needs to be fixed to go by SLID not by column number so if the column moves or does not exist
   var rusArray = rusRange.getValues();
   var rusStartRow = rusRange.getRow();
   // creating a 1d arr of column headers in rus and identification of GDPR column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
-  var rusGdprBegCol = find_col(rustcaOned, 'GDPR Data (Y,N)');
+
+// we might not need this if we change the below
+
+  var rusGdprColsIntArr = [];
+  for (var fc = 0; fc < ppeColsArr.length; fc++) {
+    var ppeColPosInt = find_col(rustcaOned, ppeColsArr[fc]);
+    rusGdprColsIntArr.push(ppeColPosInt);
+  }
+  rusGdprColsIntArr.sort(function(a, b){return a - b});
+
+  var rusGdprBegCol = rusGdprColsIntArr[0];
   //number of columns in the GDPR column set
-  var rusGdprEndCol = 9;
+  var rusGdprEndCol = rusGdprColsIntArr.length;
+
+
+
+
+
   //creating a 1d arr of rus application IDs
   var rusOned = flatten_arr(rusArray);
   //removes the last item of the array since it is a blank item
@@ -165,7 +224,13 @@ function get_updates() {
     }
   }
   logs_tst('All new information has been highlighted.');
+
+
+
   //finding the original information looping and pasting
+  //this should probably be reworked to go based on the name of the column not en masse it does not seem safe this way
+  //this loops through SLID RUS Arr and checks against SLID of tpsl then we get the last row in the rus sheet then we get the first row in the rus sheet
+  // then we add I to rus
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
       var rusLr = rus.getLastRow();
@@ -183,6 +248,10 @@ function get_updates() {
     }
   }
 
+
+
+
+//the below should be all fine
   var rusLr = rus.getLastRow();
   var rusLc = rus.getLastColumn();
   var rusIndexCheckArr = rus.getRange(2, 1, rusLr, 1).getValues();
@@ -259,6 +328,10 @@ function push_updates() {
   var rusArray = rusRange.getValues();
   var rusStartRow = rusRange.getRow();
   var rusTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
+
+
+
+
   //find gdpr section start column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
   var rusGdprBegCol = find_col(rustcaOned, 'GDPR Data (Y,N)');
@@ -270,6 +343,12 @@ function push_updates() {
   var tcaOned = flatten_arr(tpslTitleColumnArr);
   var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
   var tpslGdprEndCol = 9;
+
+
+
+
+
+
 
   //1D arr of tpsl application IDs
   var tpslOned = flatten_arr(tpslArray);

@@ -14,6 +14,10 @@ function pp_form_gen() {
   var nowDate = new Date();
   var startTime = new Date(nowDate.getTime());
 
+  var gdprBoTColArr = ['GDPR Data (Y,N)', 'Employee Data', 'End Customer Data', 'Merchant Data',
+  'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
+  'Headquarter location'];
+
   //this array contains the choices for vendor category
   var vendorCatArr = ['Agencies', 'Commercial Partners', 'Credit Reference and Fraud Agencies',
   'Customer Service Outsourcing', 'Financial Products', 'General', 'Legal', 'Marketing and PR',
@@ -536,5 +540,3 @@ function getResp_update(form, updateSheet) {
     }
     continue;
   }
-
-

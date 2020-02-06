@@ -189,3 +189,52 @@ function create_renewal_calendar() {
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Event Creation Comp Log', compLogs1);
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'Renewal Calendar Applications with Missing Information', missingAppInfoArr);
 } //end of function
+
+//To make this a function to call in other functions I only need to delete the for loop this should check if it has a y in the edits column
+function del_cal_event_from_rcdb() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
+  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_r86d7fq4eoql9be5mkdotkg0ro@group.calendar.google.com');
+
+  var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
+  var rcdbOrigLr = rcdb.getLastRow();
+  var rcdbOrigLc = rcdb.getLastColumn();
+  var rcdbTitleColumnArr = rcdb.getRange(1, 1, 1, rcdbOrigLc).getValues();
+  var rcdbTcaOned = flatten_arr(rcdbTitleColumnArr);
+  var rcdbIdColPos = find_col(rcdbTcaOned, 'SL-ID');
+  var rcdbAppColPos = find_col(rcdbTcaOned, 'Application');
+  var rcdbNotPerEvIdColPos = find_col(rcdbTcaOned, 'Notice Period Event');
+  var rcdbLasNotDayEvIdColPos = find_col(rcdbTcaOned, 'Last Notice Day Event');
+  var rcdbContEndDateEvIdColPos = find_col(rcdbTcaOned, 'Contract End Date');
+  var rcdbCreationDateColPos = find_col(rcdbTcaOned, 'Creation Date');
+  var rcdbCommitEditsColPos = find_col(rcdbTcaOned, 'Commit Edits?');
+
+  var rcdbIdArr = rcdb.getRange(2, rcdbIdColPos, rcdbOrigLr, 1).getValues();
+  var rcdbIdArrOned = flatten_arr(rcdbIdArr);
+
+  var rcdbIdArrRowAdj = 2;
+
+  for (var dd = 0; dd < rcdbIdArrOned.length; dd++) {
+    var rcdbIdRow = dd + rcdbIdArrRowAdj;
+    var rcdbCommitEditValue = rcdb.getRange(rcdbIdRow, rcdbCommitEditsColPos, 1, 1).getValue();
+
+    if (rcdbCommitEditValue == 'Y' || rcdbCommitEditValue == 'y' || rcdbCommitEditValue == 'yes' || rcdbCommitEditValue == 'Yes') {
+      logs_tst('Commit Edits column indicates that this event should be deleted.');
+      var npeId = rcdb.getRange(rcdbIdRow, rcdbNotPerEvIdColPos, 1, 1).getValue();
+      var lndeId = rcdb.getRange(rcdbIdRow, rcdbLasNotDayEvIdColPos, 1, 1).getValue();
+      var cedId = rcdb.getRange(rcdbIdRow, rcdbContEndDateEvIdColPos, 1, 1).getValue();
+      renewalCalendar.getEventById(npeId).deleteEvent();
+      renewalCalendar.getEventById(lndeId).deleteEvent();
+      renewalCalendar.getEventById(cedId).deleteEvent();
+      logs_tst('All events have been deleted for this application');
+      rcdb.deleteRow(rcdbIdRow);
+      --rcdbIdArrRowAdj;
+    }
+    else {
+      logs_tst('Commit Edits column indicates that this event should NOT be deleted.');
+      continue;
+    }
+  }
+}
