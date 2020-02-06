@@ -164,55 +164,51 @@ function get_updates() {
   //get originals for all items
   //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-
-
-
-
-
-  //we might not need this if we change the below
-  var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
-  //number of columns in the GDPR column set
-  var tpslGdprEndCol = 9; //this needs to be fixed it cannot be a constant number I will needto change this find the matching column and update based on that
-
-
-
-
-
+  var tpslAppIdColPos = find_col(tcaOned, 'SL-ID');
+  var tpslAppNameColPos = find_col(tcaOned, 'Application');
+  var tpslVendNameColPos = find_col(tcaOned, 'Supplier (Third Party Vendor)');
+  var tpslAppManColPos = find_col(tcaOned, 'Application Manager');
+  var tpslBusOwnColPos = find_col(tcaOned, 'Business System Owner');
+  var tpslBusOwnMailColPos = find_col(tcaOned, 'Business System Owner Email');
+  var tpslGdprColPos = find_col(tcaOned, 'GDPR Data (Y,N)');
+  var tpslEmpDataColPos = find_col(tcaOned, 'Employee Data');
+  var tpslEndCusDataColPos = find_col(tcaOned, 'End Customer Data');
+  var tpslMerchDataColPos = find_col(tcaOned, 'Merchant Data');
+  var tpslVendCatColPos = find_col(tcaOned, 'Vendor Category');
+  var tpslPurposeColPos = find_col(tcaOned, 'Purpose');
+  var tpslDataProcColPos = find_col(tcaOned, 'Data Processed - ALL data points must be listed (examples: Name, Bank Details, ID, Password) For definition (and more information): https://sites.google.com/izettle.com/privacyportal/privacy-portal?authuser=0 ');
+  var tpslDataSharColPos = find_col(tcaOned, 'Data shared with third party? (Y,N,N/A)');
+  var tpslHqLocColPos = find_col(tcaOned, 'Headquarter location');
   //A 1d array of the IDs in the tpsl sheet
   var tpslOned = flatten_arr(tpslArray);
   //rus variables
   var rus = ss.getSheetByName('Review Updates');
   var rusLc = rus.getLastColumn();
   var rusTitleColumnArr = rus.getRange(1, 1, 1, rusLc).getValues();
-  var rusLr = rus.getLastRow();
-  var rusRange = rus.getRange(2, 1, rusLr, 1); //this needs to be fixed to go by SLID not by column number so if the column moves or does not exist
-  var rusArray = rusRange.getValues();
-  var rusStartRow = rusRange.getRow();
-  // creating a 1d arr of column headers in rus and identification of GDPR column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
-
-// we might not need this if we change the below
-
-  var rusGdprColsIntArr = [];
-  for (var fc = 0; fc < ppeColsArr.length; fc++) {
-    var ppeColPosInt = find_col(rustcaOned, ppeColsArr[fc]);
-    rusGdprColsIntArr.push(ppeColPosInt);
-  }
-  rusGdprColsIntArr.sort(function(a, b){return a - b});
-
-  var rusGdprBegCol = rusGdprColsIntArr[0];
-  //number of columns in the GDPR column set
-  var rusGdprEndCol = rusGdprColsIntArr.length;
-
-
-
-
-
-  //creating a 1d arr of rus application IDs
+  var rusLr = rus.getLastRow();
+  var rusAppIdColPos = find_col(rustcaOned);
+  var rusAppIdColPos = find_col(rustcaOned, 'SL-ID');
+  var rusAppNameColPos = find_col(rustcaOned, 'Application');
+  var rusVendNameColPos = find_col(rustcaOned, 'Supplier (Third Party Vendor)');
+  var rusAppManColPos = find_col(rustcaOned, 'Application Manager');
+  var rusBusOwnColPos = find_col(rustcaOned, 'Business System Owner');
+  var rusBusOwnMailColPos = find_col(rustcaOned, 'Business System Owner Email');
+  var rusGdprColPos = find_col(rustcaOned, 'GDPR Data (Y,N)');
+  var rusEmpDataColPos = find_col(rustcaOned, 'Employee Data');
+  var rusEndCusDataColPos = find_col(rustcaOned, 'End Customer Data');
+  var rusMerchDataColPos = find_col(rustcaOned, 'Merchant Data');
+  var rusVendCatColPos = find_col(rustcaOned, 'Vendor Category');
+  var rusPurposeColPos = find_col(rustcaOned, 'Purpose');
+  var rusDataProcColPos = find_col(rustcaOned, 'Data Processed - ALL data points must be listed (examples: Name, Bank Details, ID, Password) For definition (and more information): https://sites.google.com/izettle.com/privacyportal/privacy-portal?authuser=0 ');
+  var rusDataSharColPos = find_col(rustcaOned, 'Data shared with third party? (Y,N,N/A)');
+  var rusHqLocColPos = find_col(rustcaOned, 'Headquarter location');
+  var rusRange = rus.getRange(2, rusAppIdColPos, rusLr, 1);
+  var rusArray = rusRange.getValues();
   var rusOned = flatten_arr(rusArray);
-  //removes the last item of the array since it is a blank item
-  rusOned.pop();
-  logs_tst('All variables initialized to find, copy, and set original data in rus.');
+  rusOned.pop(); //removes the last item of the array since it is a blank item
+  var rusStartRow = rusRange.getRow();
+
   //columns and rows to be highlighted
   var rusNumR = rus.getLastRow();
   var rusNumC = rus.getLastColumn();
@@ -251,7 +247,7 @@ function get_updates() {
 
 
 
-//the below should be all fine
+//the below should be all fine The checking will be fine because when we are copying the old data and validating it against we will put it in the same order as the new data that way we can verify it on the whole.
   var rusLr = rus.getLastRow();
   var rusLc = rus.getLastColumn();
   var rusIndexCheckArr = rus.getRange(2, 1, rusLr, 1).getValues();
