@@ -2,6 +2,7 @@
 //create script to gather answers by looping through the drive
 //format forms - they look gross they need titles, questions, better email
 
+//this function generates forms that are sent out to the BO from the PayPal extract sheet this is after the tpsl gdpr extract script is run before the sheet is copied back into the tpsl
 function pp_form_gen() {
 
   var spreadsheet = SpreadsheetApp.getActive();
@@ -14,16 +15,20 @@ function pp_form_gen() {
   var nowDate = new Date();
   var startTime = new Date(nowDate.getTime());
 
+//I am not sure why I created a new array that contains only the gdpr columns. Maybe this should be replaced with ppeColsArr and maybe we should be asking about the other information as well
+//at the very least these need to be updated with the new column titles that are being used
   var gdprBoTColArr = ['GDPR Data (Y,N)', 'Employee Data', 'End Customer Data', 'Merchant Data',
   'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
   'Headquarter location'];
 
   //this array contains the choices for vendor category
+  //are these up to date?
   var vendorCatArr = ['Agencies', 'Commercial Partners', 'Credit Reference and Fraud Agencies',
   'Customer Service Outsourcing', 'Financial Products', 'General', 'Legal', 'Marketing and PR',
   'Operational Services', 'Payment Processors'];
 
   //this array contains the choices for purpose
+  //are these up to date?
   var purposeCatArr = ['To provide our services and products, to fulfill relevant agreements with our merchants and to otherwise administer our business relationship with our merchants.',
   'To confirm your identity and verify our merchant’s personal and contact details.',
   'To prove that transactions have been executed.', 'To establish, exercise or defend a legal claim or collection procedures.',
