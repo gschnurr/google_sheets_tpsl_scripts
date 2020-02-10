@@ -12,7 +12,7 @@ function flatten_arr(targetArr) {
 }
 
 function find_col(tleColFlatArr, colToFind) {
-  var colPos;
+  var colPos = 'dne';
   for (var i = 0; i < tleColFlatArr.length; i++) {
     if (tleColFlatArr[i] == colToFind) {
       var colPos = i + 1; //add one because arrays start at 0 not 1
@@ -25,7 +25,7 @@ function find_col(tleColFlatArr, colToFind) {
 }
 
 function find_row(rowFlatArr, rowToFind) {
-  var rowPos;
+  var rowPos = 'dne';
   for (var i = 0; i < rowFlatArr.length; i++) {
     if (rowFlatArr[i] == rowToFind) {
       var rowPos = i + 2; //add two because arrays start at 0 not 1 and title row can be ignored
@@ -36,6 +36,12 @@ function find_row(rowFlatArr, rowToFind) {
   }
   return rowPos;
 }
+
+function find_cell_value(sheet, colPos, valueRow) {
+  var cellValue = sheet.getRange(valueRow, colPos, 1, 1).getValue();
+  return cellValue;
+}
+
 
 function filter_rows(valueArr, filItArr, workSheet) {
   logs_tst('Row filtering has begun. The valueArr = ' + valueArr +

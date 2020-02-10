@@ -1,7 +1,7 @@
-//remove trigger from all of the code
 //create script to gather answers by looping through the drive
 //format forms - they look gross they need titles, questions, better email
 
+//this function generates forms that are sent out to the BO from the PayPal extract sheet this is after the tpsl gdpr extract script is run before the sheet is copied back into the tpsl
 function pp_form_gen() {
 
   var spreadsheet = SpreadsheetApp.getActive();
@@ -14,16 +14,20 @@ function pp_form_gen() {
   var nowDate = new Date();
   var startTime = new Date(nowDate.getTime());
 
+//I am not sure why I created a new array that contains only the gdpr columns. Maybe this should be replaced with ppeColsArr and maybe we should be asking about the other information as well
+//at the very least these need to be updated with the new column titles that are being used
   var gdprBoTColArr = ['GDPR Data (Y,N)', 'Employee Data', 'End Customer Data', 'Merchant Data',
   'Vendor Category', 'Purpose', 'Data Disclosed', 'Data shared with third party? (Y,N,N/A)',
   'Headquarter location'];
 
   //this array contains the choices for vendor category
+  //are these up to date?
   var vendorCatArr = ['Agencies', 'Commercial Partners', 'Credit Reference and Fraud Agencies',
   'Customer Service Outsourcing', 'Financial Products', 'General', 'Legal', 'Marketing and PR',
   'Operational Services', 'Payment Processors'];
 
   //this array contains the choices for purpose
+  //are these up to date?
   var purposeCatArr = ['To provide our services and products, to fulfill relevant agreements with our merchants and to otherwise administer our business relationship with our merchants.',
   'To confirm your identity and verify our merchant’s personal and contact details.',
   'To prove that transactions have been executed.', 'To establish, exercise or defend a legal claim or collection procedures.',
@@ -144,16 +148,17 @@ function pp_form_gen() {
       else if (boFormComArr[c] != boToCheck && c == (boFormComArr.length - 1)) {
         logs_tst('BOCompArr Loop - BO Not Found, create form. BO = ' + boToCheck + ' c = ' + c + ' length = ' + boFormComArr.length);
         bson = 0;
-        logs_tst('bson reset to zero.')
+        logs_tst('bson reset to zero.');
         //defining the currentBO Email as a variable and adding that BO to the already used array
         var boOfCurFormCre = boToCheck;
         boFormComArr.unshift(boOfCurFormCre);
+        // form is created here
         var userUpdatesForm = FormApp.create(boOfCurFormCre + ': Application Business Owner GDPR Data Review');
         userUpdatesForm.setTitle(boOfCurFormCre + ': Application Business Owner GDPR Data Review');
-        //initial empty arrays for the currentBos app information
+        // initial empty arrays for the currentBos app information
         var boAppsRowNumArr = [];
         var boAppsArr = [];
-        //push information into those arrays to be used to locate the current BOs applications via the below loop
+        // push information into those arrays to be used to locate the current BOs applications via the below loop
         for (var f = 0; f < bsoOned.length; f++) {
           if (bsoOned[f] == boOfCurFormCre) {
             var cwuAppRow = f + 2;
@@ -170,8 +175,13 @@ function pp_form_gen() {
           var appToUpdate = boAppsArr[u];
           userUpdatesForm.addPageBreakItem().setTitle(appToUpdate);
           logs_tst('the application is ' + appToUpdate);
+
+
+
+          //I think this assumes the same order for the array that we created static at the top containing the col names
+          // and the col pos array that we created earlier. I should investigate this further
           for (var v = 0; v < gdprBoColPosArr.length; v++) {
-            var colTitle = gdprBoTColArr[v];
+            var colTitle = gdprBoTColArr[v]; //this might just need to implement an indexof here and it could potentially solve the problem
             var colHelpText = ppe.getRange(1, gdprBoColPosArr[v], 1, 1).getNotes();
             var currentInfo = ppe.getRange(boAppsRowNumArr[u], gdprBoColPosArr[v], 1, 1).getValue();
             var currentInfoCheck;
@@ -265,6 +275,7 @@ function pp_form_gen() {
         } //end of the loop for currentBO applications loop
         logs_tst('All applications are added to the form. ' + u + ' applications were added.');
         var responseUrl = userUpdatesForm.getPublishedUrl();
+          //I need to add a valid email check here before sending it out maybe this should be done earlier but it seems like we might just need to plug it in here
           var emailTo = boOfCurFormCre;
           var subject = 'Test - Please ignore this, this is just for testing purposes.';
           var options = {}
@@ -305,35 +316,13 @@ function pp_form_gen() {
   } //end of the while loops
 } //end of the function
 
-function on_Form_Sub_Bo_Trigger(e) {
-  // get the trigger id passed from the event and use that to get the form id
-  var triggerId = e.triggerUid;
-  var formId = get_file_by_trigger_id(triggerId);
-  var formPpResp = FormApp.openById(formId);
-  logs_tst('A form has been submitted, the Form ID is ' + formId + ' and the trigger id is ' + triggerId);
-  // the below might not work depending on how drive orders its files
-  // begin searching through google drive files for files containing the below text in the title
-  var files = DriveApp.searchFiles('title contains "PayPal Extract"');
-  //push those file's ids into an array
-  var ppExtracts = [];
-  while (files.hasNext()) {
-    var file = files.next();
-    ppExtracts.push(file.getId());
-  }
-  //grab the latest file id containing that text and open it in the background
-  var latestPpSsValue = (ppExtracts.length - 1);
-  var ssId = ppExtracts[latestPpSsValue];
-  var ss = SpreadsheetApp.openById(ssId);
-  var ppeSave = ss.getSheetByName('PayPal Extract Save');
-  logs_tst('The spreadsheet to be opened is ' + ss);
 
-  getResp_update(formPpResp, ppeSave);
-  MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
-}
 
+
+// why does this have variables passing in oh I see this is stolen straight from on form submit
 function getResp_update(form, updateSheet) {
 
-//beginning of the rebuild
+// beginning of the rebuild
 // Creating an array of all of the forms that meet the criteria of title and mimeType
   var formIdArr = [];
   var ppBoForms = DriveApp.searchFiles('title contains "Applications" and mimeType contains "form"');
@@ -341,7 +330,6 @@ function getResp_update(form, updateSheet) {
     var ppBoFormIt = ppBoForms.next();
     formIdArr.push(ppBoFormIt.getId());
   }
-
 
 // Looping through the newly created formID array
   for (var fi = 0; fi < formIdArr.length; fi++) {
@@ -363,7 +351,8 @@ function getResp_update(form, updateSheet) {
   }
 
 //original code start
-  var itemArr = form.getItems();
+// this should go in the else statement above and form needs to be changed to curForm
+  var itemArr = form.getItems(); // this might be able to be deleted or changed to or we change the above in the loop 
   logs_tst('The Form is ' + form.getTitle());
   logs_tst('The update sheet is ' + updateSheet.getSheetName());
   logs_tst('The itemArr is ' + itemArr);
@@ -457,7 +446,31 @@ function getResp_update(form, updateSheet) {
 }
 
 
+function on_Form_Sub_Bo_Trigger(e) {
+  // get the trigger id passed from the event and use that to get the form id
+  var triggerId = e.triggerUid;
+  var formId = get_file_by_trigger_id(triggerId);
+  var formPpResp = FormApp.openById(formId);
+  logs_tst('A form has been submitted, the Form ID is ' + formId + ' and the trigger id is ' + triggerId);
+  // the below might not work depending on how drive orders its files
+  // begin searching through google drive files for files containing the below text in the title
+  var files = DriveApp.searchFiles('title contains "PayPal Extract"');
+  //push those file's ids into an array
+  var ppExtracts = [];
+  while (files.hasNext()) {
+    var file = files.next();
+    ppExtracts.push(file.getId());
+  }
+  //grab the latest file id containing that text and open it in the background
+  var latestPpSsValue = (ppExtracts.length - 1);
+  var ssId = ppExtracts[latestPpSsValue];
+  var ss = SpreadsheetApp.openById(ssId);
+  var ppeSave = ss.getSheetByName('PayPal Extract Save');
+  logs_tst('The spreadsheet to be opened is ' + ss);
 
+  getResp_update(formPpResp, ppeSave);
+  MailApp.sendEmail('gibson.schnurr@izettle.com', 'did this work', test);
+}
 
 
 //Scrive user Review code

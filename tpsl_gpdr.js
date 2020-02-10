@@ -125,7 +125,7 @@ function tpsl_pp_extract() {
   MailApp.sendEmail('gibson.schnurr@izettle.com', 'TPSL GDPR PPE Gen Logs', compLogs);
   //alert for end of macro
   ui.alert('Extract Created, Please check your google sheet files for the PayPal Extract with Todays Date');
-};
+}
 
 function get_updates() {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -164,21 +164,6 @@ function get_updates() {
   //get originals for all items
   //Creating a one dim arr of tpsl column headers to find the integer for gdpr column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-  var tpslAppIdColPos = find_col(tcaOned, 'SL-ID');
-  var tpslAppNameColPos = find_col(tcaOned, 'Application');
-  var tpslVendNameColPos = find_col(tcaOned, 'Supplier (Third Party Vendor)');
-  var tpslAppManColPos = find_col(tcaOned, 'Application Manager');
-  var tpslBusOwnColPos = find_col(tcaOned, 'Business System Owner');
-  var tpslBusOwnMailColPos = find_col(tcaOned, 'Business System Owner Email');
-  var tpslGdprColPos = find_col(tcaOned, 'GDPR Data (Y,N)');
-  var tpslEmpDataColPos = find_col(tcaOned, 'Employee Data');
-  var tpslEndCusDataColPos = find_col(tcaOned, 'End Customer Data');
-  var tpslMerchDataColPos = find_col(tcaOned, 'Merchant Data');
-  var tpslVendCatColPos = find_col(tcaOned, 'Vendor Category');
-  var tpslPurposeColPos = find_col(tcaOned, 'Purpose');
-  var tpslDataProcColPos = find_col(tcaOned, 'Data Processed - ALL data points must be listed (examples: Name, Bank Details, ID, Password) For definition (and more information): https://sites.google.com/izettle.com/privacyportal/privacy-portal?authuser=0 ');
-  var tpslDataSharColPos = find_col(tcaOned, 'Data shared with third party? (Y,N,N/A)');
-  var tpslHqLocColPos = find_col(tcaOned, 'Headquarter location');
   //A 1d array of the IDs in the tpsl sheet
   var tpslOned = flatten_arr(tpslArray);
   //rus variables
@@ -187,22 +172,7 @@ function get_updates() {
   var rusTitleColumnArr = rus.getRange(1, 1, 1, rusLc).getValues();
   var rustcaOned = flatten_arr(rusTitleColumnArr);
   var rusLr = rus.getLastRow();
-  var rusAppIdColPos = find_col(rustcaOned);
   var rusAppIdColPos = find_col(rustcaOned, 'SL-ID');
-  var rusAppNameColPos = find_col(rustcaOned, 'Application');
-  var rusVendNameColPos = find_col(rustcaOned, 'Supplier (Third Party Vendor)');
-  var rusAppManColPos = find_col(rustcaOned, 'Application Manager');
-  var rusBusOwnColPos = find_col(rustcaOned, 'Business System Owner');
-  var rusBusOwnMailColPos = find_col(rustcaOned, 'Business System Owner Email');
-  var rusGdprColPos = find_col(rustcaOned, 'GDPR Data (Y,N)');
-  var rusEmpDataColPos = find_col(rustcaOned, 'Employee Data');
-  var rusEndCusDataColPos = find_col(rustcaOned, 'End Customer Data');
-  var rusMerchDataColPos = find_col(rustcaOned, 'Merchant Data');
-  var rusVendCatColPos = find_col(rustcaOned, 'Vendor Category');
-  var rusPurposeColPos = find_col(rustcaOned, 'Purpose');
-  var rusDataProcColPos = find_col(rustcaOned, 'Data Processed - ALL data points must be listed (examples: Name, Bank Details, ID, Password) For definition (and more information): https://sites.google.com/izettle.com/privacyportal/privacy-portal?authuser=0 ');
-  var rusDataSharColPos = find_col(rustcaOned, 'Data shared with third party? (Y,N,N/A)');
-  var rusHqLocColPos = find_col(rustcaOned, 'Headquarter location');
   var rusRange = rus.getRange(2, rusAppIdColPos, rusLr, 1);
   var rusArray = rusRange.getValues();
   var rusOned = flatten_arr(rusArray);
@@ -221,31 +191,31 @@ function get_updates() {
   }
   logs_tst('All new information has been highlighted.');
 
-
-
   //finding the original information looping and pasting
-  //this should probably be reworked to go based on the name of the column not en masse it does not seem safe this way
-  //this loops through SLID RUS Arr and checks against SLID of tpsl then we get the last row in the rus sheet then we get the first row in the rus sheet
-  // then we add I to rus
   for (var i = 0; i < rusOned.length; i++) {
     if (tpslOned.indexOf(rusOned[i]) > -1) {
       var rusLr = rus.getLastRow();
-      var rusStartRow = rusRange.getRow();
-      var rusRow = (i + rusStartRow);
       var tpslIndex = tpslOned.indexOf(rusOned[i]);
-      var tpslRow = (tpslIndex + tpslStartRow);
-      var tpslCopyRange = tpsl.getRange(tpslRow, tpslGdprBegCol, 1, tpslGdprEndCol);
-      var tpslCopyData = tpslCopyRange.getValues();
-      var rusConstants = rus.getRange(rusRow, 1, 1, 5).getValues();
+      var tpslRow = (tpslIndex + tpslStartRow); //row that slid is in for the tpsl sheet
       var rusNr = rusLr + 1;
 
-      rus.getRange(rusNr, 1, 1, 5).setValues(rusConstants);
-      rus.getRange(rusNr, rusGdprBegCol, 1, rusGdprEndCol).setValues(tpslCopyData);
+      for (var cv = 0; cv < ppeColsArr.length; cv++) {
+        var curColPos = find_col(tcaOned, ppeColsArr[cv]);
+        var rusTleColPos = find_col(rustcaOned, ppeColsArr[cv]);
+        if (curColPos == 'dne' || rusTleColPos == 'dne') {
+          continue;
+        }
+        else {
+          var tpslCellValue = find_cell_value(tpsl, curColPos, tpslRow);
+          rus.getRange(rusNr, rusTleColPos, 1, 1).setValue(tpslCellValue);
+        }
+      }
+    }
+    else {
+      logs_tst('No match found based on the following application ID: ' + rusOned[i]);
+      continue;
     }
   }
-
-
-
 
 //the below should be all fine The checking will be fine because when we are copying the old data and validating it against we will put it in the same order as the new data that way we can verify it on the whole.
   var rusLr = rus.getLastRow();
@@ -324,31 +294,14 @@ function push_updates() {
   var rusArray = rusRange.getValues();
   var rusStartRow = rusRange.getRow();
   var rusTitleColumnArr =rus.getRange(1, 1, 1, rusLc).getValues();
-
-
-
-
   //find gdpr section start column position
   var rustcaOned = flatten_arr(rusTitleColumnArr);
-  var rusGdprBegCol = find_col(rustcaOned, 'GDPR Data (Y,N)');
-  var rusGdprEndCol = 9;
   //1D array of rus application IDs
   var rusOned = flatten_arr(rusArray);
-
   //1D array of TPSL header column values and find gdpr section start column
   var tcaOned = flatten_arr(tpslTitleColumnArr);
-  var tpslGdprBegCol = find_col(tcaOned, 'GDPR Data (Y,N)');
-  var tpslGdprEndCol = 9;
-
-
-
-
-
-
-
   //1D arr of tpsl application IDs
   var tpslOned = flatten_arr(tpslArray);
-
   //create an array of the updates column and find row position and delete the ones that dont equal y
   //the updates column needs to be the last column in the sheet
   var rusLr2 = rus.getLastRow();
@@ -363,15 +316,24 @@ function push_updates() {
     if (rusUpdatesArrOned[i] == 'Y') {
       if (tpslOned.indexOf(rusOned[i]) > -1) {
         var rusRow = (i + rusStartRow);
-        var rusCopyRange = rus.getRange(rusRow, rusGdprBegCol, 1, rusGdprEndCol);
-        var rusCopyData = rusCopyRange.getValues();
         var tpslIndex = tpslOned.indexOf(rusOned[i]);
         var tpslRow = (tpslIndex + tpslStartRow);
 
-        tpsl.getRange(tpslRow, tpslGdprBegCol, 1, tpslGdprEndCol).setValues(rusCopyData);
+        for (var pnv = 0; pnv < ppeColsArr.length; pnv++) {
+          var tpslCurColPos = find_col(tcaOned, ppeColsArr[pnv]);
+          var rusTleColPos = find_col(rustcaOned, ppeColsArr[pnv]);
+          if (tpslCurColPos == 'dne' || rusTleColPos == 'dne') {
+            continue;
+          }
+          else {
+            var rusCellValue = find_cell_value(rus, rusTleColPos, rusRow);
+            tpsl.getRange(tpslRow, tpslCurColPos, 1, 1).setValue(rusCellValue);
+          }
+        }
       }
       else {
         SpreadsheetApp.getUi().alert('could not find ' + rusOned[i] + ' in the TPSL ' + 'make sure that the ID is correct');
+        continue;
       }
     }
     else if (rusUpdatesArrOned[i] == 'X') {
