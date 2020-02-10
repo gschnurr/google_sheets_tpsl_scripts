@@ -19,7 +19,7 @@ function event_creation_validation(existingEventDbOnedArray, appID) {
 
 function create_single_day_events(noticePeriod, agreeEndDate, appID, appName, appMan, rcdbFirstEmptyRow) {
 
-  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_r86d7fq4eoql9be5mkdotkg0ro@group.calendar.google.com');
+  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
 
   var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
   var rcdbOrigLc = rcdb.getLastColumn();
@@ -194,7 +194,7 @@ function del_cal_event_from_rcdb() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
 
-  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_r86d7fq4eoql9be5mkdotkg0ro@group.calendar.google.com');
+  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
 
   var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
   var rcdbOrigLr = rcdb.getLastRow();
