@@ -47,10 +47,10 @@ function create_single_day_events(noticePeriod, agreeEndDate, appID, appName, ap
   var noticePeriodEvent = renewalCalendar.createAllDayEvent('60 Day | ' + appName + ' | ' + appMan, new Date(renewStartDate));
   noticePeriodEvent.setDescription('This is a reminder 60 days before prior written notice of termination is due to the vendor. ' +
   'The application manager should begin to work with the business owner to renew or terminate the contract for this vendor.');
-  noticePeriodEvent.addEmailReminder(420);
+
   var lastNoticeDayEvent = renewalCalendar.createAllDayEvent('Notice | ' + appName + ' | ' + appMan, new Date(lastNoticeDate));
   lastNoticeDayEvent.setDescription('This the last day that prior written notice of termination can be submitted to the vendor.');
-  lastNoticeDayEvent.addEmailReminder(10560);
+
   var contractEndDateEvent = renewalCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
   contractEndDateEvent.setDescription('The contract expires on this date.');
 
@@ -92,8 +92,6 @@ function create_single_day_events(noticePeriod, agreeEndDate, appID, appName, ap
     contractEndDateEvent.setColor(8);
   }
   logs_tst('EVENTS CREATED');
-
-//add BO as Guest
 
   var npeId = noticePeriodEvent.getId();
   var lndeId = lastNoticeDayEvent.getId();
