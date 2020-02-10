@@ -147,7 +147,7 @@ function create_renewal_calendar() {
     var rcdbIdArr = rcdb.getRange(2, rcdbIdColPos, rcdbLr, 1).getValues();
     var rcdbIdArrOned = flatten_arr(rcdbIdArr);
     // basic information found such as app row and vendor class
-    if (vendClass == 'Tactical' || vendClass == 'Strategic') {
+    if (vendClass == 'Tactical' || vendClass == 'Strategic' || vendClass == 'Operational' || vendClass == 'Commodity') {
       logs_tst('____DB VALIDATION BEGUN_____');
       var appID = tpsl.getRange(appRow, tcaAppIdColPos, 1, 1).getValue();
       logs_tst('Application ID = ' + appID);
