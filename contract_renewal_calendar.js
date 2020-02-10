@@ -122,7 +122,7 @@ function create_renewal_calendar() {
   var tcaOned = flatten_arr(tpslTitleColumnArr);
   var tcaAppIdColPos = find_col(tcaOned, 'SL-ID');
   var tcaAppColPos = find_col(tcaOned, 'Application');
-  var tcaVendClassColPos = find_col(tcaOned, 'Vendor Classification');
+  var tcaVendClassColPos = find_col(tcaOned, 'Vendor/Supplier Classification');
   var tcaAppManColPos = find_col(tcaOned, 'Application Manager');
   var tcaBusOwnColPos = find_col(tcaOned, 'Business System Owner');
   var tcaAgreeEndDateColPos = find_col(tcaOned, 'Agreement End Date');
