@@ -193,7 +193,7 @@ function get_updates() {
 
   //finding the original information looping and pasting
   for (var i = 0; i < rusOned.length; i++) {
-    if (tpslOned.indexOf(rusOned[i]) > -1) {
+    if (tpslOned.indexOf(rusOned[i]) > -1 && rusOned[i] != '') {
       var rusLr = rus.getLastRow();
       var tpslIndex = tpslOned.indexOf(rusOned[i]);
       var tpslRow = (tpslIndex + tpslStartRow); //row that slid is in for the tpsl sheet
