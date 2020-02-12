@@ -105,6 +105,13 @@ function tpsl_pp_extract() {
   var ppeLc = ppe.getLastColumn();
   ppe.insertColumnAfter(ppeLc);
   ppe.getRange(1, (ppeLc + 1), 1, 1).setValue('Updates? (Y/N) If yes please make the updates in this sheet');
+  var ppeLc = ppe.getLastColumn();
+  ppe.insertColumnAfter(ppeLc);
+  ppe.getRange(1, (ppeLc + 1), 1, 1).setValue('Last Modified Date');
+  var ppeLc = ppe.getLastColumn();
+  ppe.insertColumnAfter(ppeLc);
+  ppe.getRange(1, (ppeLc + 1), 1, 1).setValue('Last Edit User');
+
   //!!Note: The newly created sheet is not part of the array because the array is technically created before the ppe sheet was created!!
   //looping through sheets array to protect and hide
   for (var i=0; i < sheets.length; i++) {

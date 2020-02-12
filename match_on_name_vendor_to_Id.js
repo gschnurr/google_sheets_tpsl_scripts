@@ -1,9 +1,3 @@
-//take merge sheet information that has application name and other Information match ID to that applications
-//next step is to add missing information columns from tpsl to merge sheets
-//rename sheet to Copy of PayPal Extract Save
-//Run get updates macro
-
-
 function match_app_info() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
