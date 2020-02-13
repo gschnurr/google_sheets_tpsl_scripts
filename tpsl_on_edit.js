@@ -15,14 +15,18 @@ function onEdit(e){
   var tpslEditUserColPos = find_col(tcaOned, 'Last Edit User');
   var tpslEditColTitle = tpsl.getRange(2, editColPos, 1, 1).getValue();
 
-  if (sheets.indexOf('PayPal Extract') > -1) {
+  var sheetsNameArr = [];
+  for (var fs = 0; fs < sheets.length; fs ++) {
+    var curSheetToAddToArr = sheets[fs].getSheetName();
+    sheetsNameArr.push(curSheetToAddToArr);
+  }
+
+  if (sheetsNameArr.indexOf('PayPal Extract') > -1) {
     var ppe = ss.getSheetByName('PayPal Extract');
     var ppeLr = ppe.getLastRow();
     var ppeLc = ppe.getLastColumn();
-    var ppeAllCells = ppe.getRange(1, 1, ppeLr, ppeLc);
-    var ppeAllCellsArr = ppeAllCells.getValues();
     var ppeTitleColumnArr = ppe.getRange(1, 1, 1, ppeLc).getValues();
-    var parTcaOned = flatten_arr(ppeTitleColumnArr);
+    var ppeTcaOned = flatten_arr(ppeTitleColumnArr);
     var ppeModDateColPos = find_col(ppeTcaOned, 'Last Modified Date');
     var ppeEditUserColPos = find_col(ppeTcaOned, 'Last Edit User');
     var ppeEditColTitle = ppe.getRange(1, editColPos, 1, 1).getValue();
@@ -32,7 +36,7 @@ function onEdit(e){
     tpsl.getRange(editRowPos, tpslModDateColPos, 1, 1).setValue(date);
     tpsl.getRange(editRowPos, tpslEditUserColPos, 1, 1).setValue(editUser);
   }
-  else if (editRowPos > 1 && ppeEditColTitle != 'Last Modified Date' && ppeEditColTitle != 'Last Edit User' && currentEditSheet == 'PayPal Extract') {
+  else if (editRowPos > 1 && ppeEditColTitle != 'Last Modified Date' && ppeEditColTitle != 'Last Edit User' && ppeEditColTitle != 'Updates? (Y/N) If yes please make the updates in this sheet' && currentEditSheet == 'PayPal Extract') {
     ppe.getRange(editRowPos, ppeModDateColPos, 1, 1).setValue(date);
     ppe.getRange(editRowPos, ppeEditUserColPos, 1, 1).setValue(editUser);
   }
