@@ -19,97 +19,61 @@ function event_creation_validation(existingEventDbOnedArray, appID) {
 
 //remove notice period and create a review date event 180 days ahead of contract expiration date include two events in the calendar for each application
 //if the current date is > date at wich the calendar event would be created. do not create
-function create_single_day_events(noticePeriod, agreeEndDate, appID, appName, appMan, rcdbFirstEmptyRow) {
+function create_single_day_events(qOneReviewStartDate, qTwoReviewStartDate, qThreeReviewStartDate, qFourReviewStartDate, agreeEndDate, appID, appName, appMan) {
 
-  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
+  var reviewCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
+//I have started to create the events would still need the if function to determine if this would be appropriate way to do This
+//if it is then we could do a date evaluation to name the events based on quarters with an equation this is also where we would add the if statement based on date of the date run to determine if it should be run or not
+  var qOneReviewEvent = reviewCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
+  contractEndDateEvent.setDescription('The contract expires on this date.');
 
-  var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
-  var rcdbOrigLc = rcdb.getLastColumn();
-  var rcdbTitleColumnArr = rcdb.getRange(1, 1, 1, rcdbOrigLc).getValues();
-  var rcdbTcaOned = flatten_arr(rcdbTitleColumnArr);
-  var rcdbIdColPos = find_col(rcdbTcaOned, 'SL-ID');
-  var rcdbAppColPos = find_col(rcdbTcaOned, 'Application');
-  var rcdbNotPerEvIdColPos = find_col(rcdbTcaOned, 'Notice Period Event');
-  var rcdbLasNotDayEvIdColPos = find_col(rcdbTcaOned, 'Last Notice Day Event');
-  var rcdbContEndDateEvIdColPos = find_col(rcdbTcaOned, 'Contract End Date');
-  var rcdbCreationDateColPos = find_col(rcdbTcaOned, 'Creation Date');
-  var rcdbCommitEditsColPos = find_col(rcdbTcaOned, 'Commit Edits?');
+  var qTwoReviewEvent = reviewCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
+  contractEndDateEvent.setDescription('The contract expires on this date.');
 
-  if (noticePeriod == '' || noticePeriod == 0) {
-    var lastNoticeDate = agreeEndDate - (msPerDay * 90);
-    var renewStartDate = lastNoticeDate - (msPerDay * 60);
-    logs_tst('The tpsl notice period data does not exist. The Renewal Start Date will default to ' + renewStartDate);
-  }
-  else {
-    var lastNoticeDate = agreeEndDate - (msPerDay * noticePeriod);
-    var renewStartDate = lastNoticeDate - (msPerDay * 60);
-    logs_tst('Notice period exits. The renewal start date will be set at ' + renewStartDate);
-  }
+  var qThreeReviewEvent = reviewCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
+  contractEndDateEvent.setDescription('The contract expires on this date.');
 
-  var noticePeriodEvent = renewalCalendar.createAllDayEvent('60 Day | ' + appName + ' | ' + appMan, new Date(renewStartDate));
-  noticePeriodEvent.setDescription('This is a reminder 60 days before prior written notice of termination is due to the vendor. ' +
-  'The application manager should begin to work with the business owner to renew or terminate the contract for this vendor.');
+  var qFourReviewEvent = reviewCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
+  contractEndDateEvent.setDescription('The contract expires on this date.');
 
-  var lastNoticeDayEvent = renewalCalendar.createAllDayEvent('Notice | ' + appName + ' | ' + appMan, new Date(lastNoticeDate));
-  lastNoticeDayEvent.setDescription('This the last day that prior written notice of termination can be submitted to the vendor.');
-
-  var contractEndDateEvent = renewalCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
+  var contractEndDateEvent = reviewCalendar.createAllDayEvent('Expiry | ' + appName + ' | ' + appMan, new Date(agreeEndDate));
   contractEndDateEvent.setDescription('The contract expires on this date.');
 
   logs_tst('Begin Customization');
 
   if (appMan == 'Shumel Rahman') {
-    noticePeriodEvent.setColor(3);
     lastNoticeDayEvent.setColor(3);
     contractEndDateEvent.setColor(3);
   }
   else if (appMan == 'Maaike Gerritse') {
-    noticePeriodEvent.setColor(4);
     lastNoticeDayEvent.setColor(4);
     contractEndDateEvent.setColor(4);
   }
   else if (appMan == 'Josefin Eklund') {
-    noticePeriodEvent.setColor(6);
     lastNoticeDayEvent.setColor(6);
     contractEndDateEvent.setColor(6);
   }
   else if (appMan == 'Roxanne Baumann') {
-    noticePeriodEvent.setColor(10);
     lastNoticeDayEvent.setColor(10);
     contractEndDateEvent.setColor(10);
   }
   else if (appMan == 'Markus Kanerva') {
-    noticePeriodEvent.setColor(1);
     lastNoticeDayEvent.setColor(1);
     contractEndDateEvent.setColor(1);
   }
   else if (appMan == 'Gibson Schnurr') {
-    noticePeriodEvent.setColor(7);
     lastNoticeDayEvent.setColor(7);
     contractEndDateEvent.setColor(7);
   }
   else {
-    noticePeriodEvent.setColor(8);
     lastNoticeDayEvent.setColor(8);
     contractEndDateEvent.setColor(8);
   }
   logs_tst('EVENTS CREATED');
 
-  var npeId = noticePeriodEvent.getId();
-  var lndeId = lastNoticeDayEvent.getId();
-  var cedId = contractEndDateEvent.getId();
-
-  logs_tst('____DATABASE BACKUP STARTED_____');
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbIdColPos, 1, 1).setValue(appID);
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbAppColPos, 1, 1).setValue(appName);
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbNotPerEvIdColPos, 1, 1).setValue(npeId);
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbLasNotDayEvIdColPos, 1, 1).setValue(lndeId);
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbContEndDateEvIdColPos, 1, 1).setValue(cedId);
-  rcdb.getRange(rcdbFirstEmptyRow, rcdbCreationDateColPos, 1, 1).setValue(date);
-  logs_tst('DATABASE UPDATED');
 }
 
-//if the current date is > date at wich the calendar event would be created. do not create 
+//if the current date is > date at wich the calendar event would be created. do not create
 function create_renewal_calendar() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -129,7 +93,6 @@ function create_renewal_calendar() {
   var tcaAppManColPos = find_col(tcaOned, 'Application Manager');
   var tcaBusOwnColPos = find_col(tcaOned, 'Business System Owner');
   var tcaAgreeEndDateColPos = find_col(tcaOned, 'Agreement End Date');
-  var tcaLastNoticePeriodColPos = find_col(tcaOned, 'Last Notice Period');
   var tcaAgreeStartDateColPos = find_col(tcaOned, 'Initial Agreement Start Date');
   logs_tst('All ColPos Found');
 
@@ -145,10 +108,6 @@ function create_renewal_calendar() {
     logs_tst('Application Row = ' + appRow);
     var vendClass = tpsl.getRange(appRow, tcaVendClassColPos, 1, 1).getValue();
     logs_tst('Vendor Class = ' + vendClass);
-    var rcdbLr = rcdb.getLastRow();
-    var rcdbFirstEmptyRow = rcdbLr + 1;
-    var rcdbIdArr = rcdb.getRange(2, rcdbIdColPos, rcdbLr, 1).getValues();
-    var rcdbIdArrOned = flatten_arr(rcdbIdArr);
     // basic information found such as app row and vendor class
     if (vendClass == 'Tactical' || vendClass == 'Strategic') {
       logs_tst('____DB VALIDATION BEGUN_____');
@@ -158,28 +117,20 @@ function create_renewal_calendar() {
       logs_tst('Application = ' + appName);
       var appMan = tpsl.getRange(appRow, tcaAppManColPos, 1, 1).getValue();
       logs_tst('Application Manager = ' + appMan);
-
-      var eventExists = event_creation_validation(rcdbIdArrOned, appID);
-
-      if (eventExists == 'yes') {
+      var agreeEndDate = tpsl.getRange(appRow, tcaAgreeEndDateColPos, 1, 1).getValue();
+      if (agreeEndDate == '') {
+        missingAppInfoArr.push(appName);
+        logs_tst('The application ' + appName + ' is missing an agreement end date.')
         continue;
       }
-      else if (eventExists == 'no') {
-        var agreeEndDate = tpsl.getRange(appRow, tcaAgreeEndDateColPos, 1, 1).getValue();
-        if (agreeEndDate == '') {
-          missingAppInfoArr.push(appName);
-          logs_tst('The application ' + appName + ' is missing an agreement end date.')
-          continue;
-        }
-        else {
-          logs_tst('____EVENT CREATION STARTED_____');
-          logs_tst('Agreement End Date = ' + agreeEndDate);
-          var noticePeriod = tpsl.getRange(appRow, tcaLastNoticePeriodColPos, 1, 1).getValue();
-          logs_tst('Notice Period = ' + noticePeriod);
-          var lastStartPeriod = tpsl.getRange(appRow, tcaAgreeStartDateColPos, 1, 1).getValue();
-          logs_tst('Original Agreement Start Date = ' + lastStartPeriod);
-          create_single_day_events(noticePeriod, agreeEndDate, appID, appName, appMan, rcdbFirstEmptyRow);
-        }
+      else {
+        logs_tst('____EVENT CREATION STARTED_____');
+        logs_tst('Agreement End Date = ' + agreeEndDate);
+        var qOneReviewStartDate = agreeEndDate + (msPerDay * 90);
+        var qTwoReviewStartDate = agreeEndDate + (msPerDay * 180);
+        var qThreeReviewStartDate = agreeEndDate + (msPerDay * 270);
+        var qFourReviewStartDate = agreeEndDate + (msPerDay * 360);
+        create_single_day_events(qOneReviewStartDate, qTwoReviewStartDate, qThreeReviewStartDate, qFourReviewStartDate, agreeEndDate, appID, appName, appMan);
       }
     }
     else {
@@ -197,7 +148,7 @@ function del_cal_event_from_rcdb() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
 
-  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
+  var reviewCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
 
   var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
   var rcdbOrigLr = rcdb.getLastRow();
@@ -226,9 +177,9 @@ function del_cal_event_from_rcdb() {
       var npeId = rcdb.getRange(rcdbIdRow, rcdbNotPerEvIdColPos, 1, 1).getValue();
       var lndeId = rcdb.getRange(rcdbIdRow, rcdbLasNotDayEvIdColPos, 1, 1).getValue();
       var cedId = rcdb.getRange(rcdbIdRow, rcdbContEndDateEvIdColPos, 1, 1).getValue();
-      renewalCalendar.getEventById(npeId).deleteEvent();
-      renewalCalendar.getEventById(lndeId).deleteEvent();
-      renewalCalendar.getEventById(cedId).deleteEvent();
+      reviewCalendar.getEventById(npeId).deleteEvent();
+      reviewCalendar.getEventById(lndeId).deleteEvent();
+      reviewCalendar.getEventById(cedId).deleteEvent();
       logs_tst('All events have been deleted for this application');
       rcdb.deleteRow(rcdbIdRow);
       --rcdbIdArrRowAdj;
