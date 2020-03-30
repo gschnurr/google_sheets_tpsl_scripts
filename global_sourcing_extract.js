@@ -6,9 +6,9 @@ function gs_extract() {
   'Last Notice Period', 'Agreement End Date', 'Agreement Transition Status', 'Approved Budget Value (SEK)'];
   //create extract sheet and name
   spreadsheet.insertSheet(2);
-  spreadsheet.getActiveSheet().setName('Global Services New Extract');
+  spreadsheet.getActiveSheet().setName('Global Sourcing New Extract');
 
-  var gsExtract = ss.getSheetByName('Global Services New Extract');
+  var gsExtract = ss.getSheetByName('Global Sourcing New Extract');
   //paste value of specified range
   var tpslAllCellsData = tpslAllCells.getValues();
   var tpslAllNotes = tpslAllCells.getNotes();
@@ -91,9 +91,9 @@ function gs_extract_data_verification() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
 
-  var gseChangeName = ss.getSheetByName('Copy of Global Services New Extract');
-  gseChangeName.setName('Global Services New Extract');
-  var gseNew = ss.getSheetByName('Global Services New Extract');
+  var gseChangeName = ss.getSheetByName('Copy of Global Sourcing New Extract');
+  gseChangeName.setName('Global Sourcing New Extract');
+  var gseNew = ss.getSheetByName('Global Sourcing New Extract');
   var gseNewLr = gseNew.getLastRow();
   var gseNewLc = gseNew.getLastColumn();
   var gseNewTca = gseNew.getRange(1, 1, 1, gseNewLc).getValues();
@@ -102,7 +102,7 @@ function gs_extract_data_verification() {
   var gseNewIdArr = gseNew.getRange(2, gseNewIdColPos, gseNewLr, 1).getValues();
   var gseNewIdOned = flatten_arr(gseNewIdArr);
 
-  var gseOld = ss.getSheetByName('Global Services Last Extract');
+  var gseOld = ss.getSheetByName('Global Sourcing Last Extract');
   var gseOldLr = gseOld.getLastRow();
   var gseOldLc = gseOld.getLastColumn();
   var gseOldTca = gseOld.getRange(1, 1, 1, gseOldLc).getValues();
@@ -203,9 +203,9 @@ function gs_extract_data_verification() {
     ss.deleteSheet(deleteThis);
   }
   gseNew.setName('iZettle Application Extract');
-  var gseCopy = ss.getSheetByName('Copy of Global Services New Extract');
+  var gseCopy = ss.getSheetByName('Copy of Global Sourcing New Extract');
   gseOld.setName('GS Extract Archived on ' + date);
-  gseCopy.setName('Global Services Last Extract');
+  gseCopy.setName('Global Sourcing Last Extract');
 
   var emailAttachment = DriveApp.getFileById('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4');
   GmailApp.createDraft('', 'iZettle Monthly Application Extract', 'Attached is a spreadsheet containing contracting information and statuses for iZettle third-party applications. All newly added applications will be highlighted in green, deleted applications will be highlighted in red, and changes to applicaiton information will be highlighted in yellow (with the previous data highlighted in orange in the archived sheet). Please let me know if you have any questions.', {
