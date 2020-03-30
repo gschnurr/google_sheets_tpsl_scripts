@@ -2,7 +2,7 @@ function gs_extract() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
-  var gsExtColFilArr = ['SL-ID', 'Application', 'Supplier (Third Party Vendor)', 'Application Manager', 'Functional Description',
+  var gsExtColFilArr = ['SL-ID', 'Application', 'Supplier (Third Party Vendor)', 'Application Manager',
   'Last Notice Period', 'Agreement End Date', 'Agreement Transition Status', 'Approved Budget Value (SEK)'];
   //create extract sheet and name
   spreadsheet.insertSheet(2);
@@ -46,37 +46,29 @@ function gs_extract() {
   var gsExtractIdArray = gsExtract.getRange(2, gsExtractIdColPos, gsExtractLr, 1).getValues();
   var gsExtractIdOned = flatten_arr(gsExtractIdArray);
   var gsExtractContractDataExistsArr = []; //boolean array of true or false answering if values exist?
+  var testingArr = []
 
   for (var vv = 0; vv < gsExtractIdOned.length; vv++) {
-    var appRow = vv + 1;
+    var appRow = vv + 2;
     var lastNotPerVal = gsExtract.getRange(appRow, gsExtractLnpColPos, 1, 1).getValue();
     var agrEndDatVal = gsExtract.getRange(appRow, gsExtractAedColPos, 1, 1).getValue();
     var agrTranStaVal = gsExtract.getRange(appRow, gsExtractAtsColPos, 1, 1).getValue();
     logs_tst('value to check ' + agrTranStaVal);
     var yeaAgrVal = gsExtract.getRange(appRow, gsExtractYavColPos, 1, 1).getValue();
 
-    if (agrTranStaVal != '' && agrTranStaVal != 'StringFilter') {
+    if (agrTranStaVal != '') {
       gsExtractContractDataExistsArr.push('true');
-      continue;
-    }
-    else if (agrEndDatVal != '' && agrEndDatVal != 'StringFilter') {
-      gsExtractContractDataExistsArr.push('true');
-      continue;
-    }
-    else if (yeaAgrVal != '' && yeaAgrVal != 'StringFilter') {
-      gsExtractContractDataExistsArr.push('true');
-      continue;
-    }
-    else if (lastNotPerVal != '' && lastNotPerVal != 'StringFilter') {
-      gsExtractContractDataExistsArr.push('true');
+      testingArr.push(['true', agrTranStaVal, gsExtractIdOned[vv]]);
       continue;
     }
     else {
       gsExtractContractDataExistsArr.push('false');
+      testingArr.push(['false', agrTranStaVal]);
       continue;
     }
   }
   var gsExtRowFilArr = ['true'];
+  logs_tst(testingArr);
 
   filter_rows(gsExtractContractDataExistsArr, gsExtRowFilArr, gsExtract);
   var copyDestination = SpreadsheetApp.openById('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4')
