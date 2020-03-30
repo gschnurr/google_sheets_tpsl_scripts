@@ -3,7 +3,7 @@ function gs_extract() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
   var gsExtColFilArr = ['SL-ID', 'Application', 'Supplier (Third Party Vendor)', 'Application Manager', 'Functional Description',
-  'Last Notice Period', 'Agreement End Date', 'Agreement Transition Status', 'Yearly Agreement Value (SEK)', 'Comments'];
+  'Last Notice Period', 'Agreement End Date', 'Agreement Transition Status', 'Approved Budget Value (SEK)'];
   //create extract sheet and name
   spreadsheet.insertSheet(2);
   spreadsheet.getActiveSheet().setName('Global Services New Extract');
@@ -12,13 +12,12 @@ function gs_extract() {
   //paste value of specified range
   var tpslAllCellsData = tpslAllCells.getValues();
   var tpslAllNotes = tpslAllCells.getNotes();
-  var tpslAllDvRules = tpslAllCells.getDataValidations();
 
   gsExtract.getRange(1, 1, tpslLr, tpslLc).setValues(tpslAllCellsData);
   var gsExtractLc = gsExtract.getLastColumn();
   var gsExtractLr = gsExtract.getLastRow();
   gsExtract.getRange(1, 1, gsExtractLr, gsExtractLc).setNotes(tpslAllNotes);
-  gsExtract.getRange(1, 1, gsExtractLr, gsExtractLc).setDataValidations(tpslAllDvRules);
+  gsExtract.deleteRow(3);
   gsExtract.deleteRow(1);
   //Copying format of title row from tpsl to ppe
   gsExtract.getRange('A1').activate();
@@ -29,16 +28,20 @@ function gs_extract() {
   //deleting un-needed columns
   var gsExtractColumnArr = gsExtract.getRange(1, 1, 1, gsExtractLc).getValues();
   var gsExtractOned = flatten_arr(gsExtractColumnArr);
+
   filter_cols(gsExtractOned, gsExtColFilArr, gsExtract);
 
   var gsExtractLc = gsExtract.getLastColumn();
   var gsExtractLr = gsExtract.getLastRow();
 
+  var gsExtractColumnArr = gsExtract.getRange(1, 1, 1, gsExtractLc).getValues();
+  var gsExtractOned = flatten_arr(gsExtractColumnArr);
+
   var gsExtractIdColPos = find_col(gsExtractOned, 'SL-ID');
   var gsExtractLnpColPos = find_col(gsExtractOned, 'Last Notice Period');
   var gsExtractAedColPos = find_col(gsExtractOned, 'Agreement End Date');
   var gsExtractAtsColPos = find_col(gsExtractOned, 'Agreement Transition Status');
-  var gsExtractYavColPos = find_col(gsExtractOned, 'Yearly Agreement Value');
+  var gsExtractYavColPos = find_col(gsExtractOned, 'Approved Budget Value (SEK)');
 
   var gsExtractIdArray = gsExtract.getRange(2, gsExtractIdColPos, gsExtractLr, 1).getValues();
   var gsExtractIdOned = flatten_arr(gsExtractIdArray);
@@ -49,30 +52,36 @@ function gs_extract() {
     var lastNotPerVal = gsExtract.getRange(appRow, gsExtractLnpColPos, 1, 1).getValue();
     var agrEndDatVal = gsExtract.getRange(appRow, gsExtractAedColPos, 1, 1).getValue();
     var agrTranStaVal = gsExtract.getRange(appRow, gsExtractAtsColPos, 1, 1).getValue();
+    logs_tst('value to check ' + agrTranStaVal);
     var yeaAgrVal = gsExtract.getRange(appRow, gsExtractYavColPos, 1, 1).getValue();
 
-    if (agrTranStaVal != '') {
+    if (agrTranStaVal != '' && agrTranStaVal != 'StringFilter') {
       gsExtractContractDataExistsArr.push('true');
+      continue;
     }
-    else if (agrEndDatVal != '') {
+    else if (agrEndDatVal != '' && agrEndDatVal != 'StringFilter') {
       gsExtractContractDataExistsArr.push('true');
+      continue;
     }
-    else if (yeaAgrVal != '') {
+    else if (yeaAgrVal != '' && yeaAgrVal != 'StringFilter') {
       gsExtractContractDataExistsArr.push('true');
+      continue;
     }
-    else if (lastNotPerVal != '') {
+    else if (lastNotPerVal != '' && lastNotPerVal != 'StringFilter') {
       gsExtractContractDataExistsArr.push('true');
+      continue;
     }
     else {
       gsExtractContractDataExistsArr.push('false');
+      continue;
     }
   }
   var gsExtRowFilArr = ['true'];
 
   filter_rows(gsExtractContractDataExistsArr, gsExtRowFilArr, gsExtract);
-
-  gsExtract.copyTo('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4');
-
+  var copyDestination = SpreadsheetApp.openById('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4')
+  gsExtract.copyTo(copyDestination);
+  spreadsheet.deleteSheet(gsExtract);
 };
 
 
@@ -82,6 +91,8 @@ function gs_extract_data_verification() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
 
+  var gseChangeName = ss.getSheetByName('Copy of Global Services New Extract');
+  gseChangeName.setName('Global Services New Extract');
   var gseNew = ss.getSheetByName('Global Services New Extract');
   var gseNewLr = gseNew.getLastRow();
   var gseNewLc = gseNew.getLastColumn();
@@ -93,7 +104,7 @@ function gs_extract_data_verification() {
 
   var gseOld = ss.getSheetByName('Global Services Last Extract');
   var gseOldLr = gseOld.getLastRow();
-  var gseOldLc = gseOldLc.getLastColumn();
+  var gseOldLc = gseOld.getLastColumn();
   var gseOldTca = gseOld.getRange(1, 1, 1, gseOldLc).getValues();
   var gseOldTconed = flatten_arr(gseOldTca);
   var gseOldIdColPos = find_col(gseOldTconed, 'SL-ID');
@@ -103,11 +114,14 @@ function gs_extract_data_verification() {
 //beginning of validating the new data against the old data by looping through the new data IDs
   for (var ln = 0; ln < gseNewIdOned.length; ln++) {
     var gseNewId = gseNewIdOned[ln];
+    logs_tst('gseNewID = ' + gseNewId);
     var gseNewIdRow = ln + 2;
+    logs_tst('gseNewIdRow = ' + gseNewIdRow);
 
     if (gseOldIdOned.indexOf(gseNewId) > -1) {
       var gseOldIdIndex = gseOldIdOned.indexOf(gseNewId);
       var gseOldIdRow = gseOldIdIndex + 2;
+      logs_tst('gseOldIdRow = ' + gseOldIdRow);
 
       for (var md = 0; md < gseNewTconed.length; md++) {
         var colTtm = gseNewTconed[md];
@@ -116,15 +130,32 @@ function gs_extract_data_verification() {
         if (gseOldTconed.indexOf(colTtm) > -1) {
           var gseColTitleIndex = gseOldTconed.indexOf(colTtm);
           var gseOldColPos = gseColTitleIndex + 1;
-          var gseOldVal = gseOld.getRange(gseOldIdRow, gseOldColPos, 1, 1).getValue();
+          var gseOldCellPos = gseOld.getRange(gseOldIdRow, gseOldColPos, 1, 1);
           var gseNewCellPos = gseNew.getRange(gseNewIdRow, gseNewColPos, 1, 1);
-          var gseNewVal = gseNewCellPos.getValue();
+
+          if (colTtm == 'Agreement End Date') {
+            logs_tst('Date col found');
+            var gseNewValDate = gseNewCellPos.getValue();
+            var gseOldValDate = gseOldCellPos.getValue();
+
+            var gseNewVal = gseNewValDate.valueOf();
+            var gseOldVal = gseOldValDate.valueOf();
+            logs_tst(gseOldColPos);
+            logs_tst(gseOldVal);
+          }
+          else {
+            var gseNewVal = gseNewCellPos.getValue();
+            var gseOldVal = gseOldCellPos.getValue();
+          }
+
+          logs_tst('gseNewVal = ' + gseNewVal + ' gseOldVal = ' + gseOldVal);
 
           if (gseNewVal == gseOldVal) {
             continue;
           }
           else {
             gseNewCellPos.setBackground('yellow');
+            gseOldCellPos.setBackground('orange');
           } //comparing values if statement
         } //finding matching column title if statement
         else {
@@ -164,28 +195,22 @@ function gs_extract_data_verification() {
       } //for loop for col pos and replace closed
     } //else if there is no matching id value in new sheet
   } // closing of for loop looking for deleted applications
-// need to change the name of the new sheet that is to be delivered then create a copy in its own workbook
+  var copyDestination = SpreadsheetApp.openById('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4')
+  gseNew.copyTo(copyDestination);
+
+  if (sheets.indexOf('iZettle Application Extract') > -1) {
+    var deleteThis = ss.getSheetByName('iZettle Application Extract');
+    ss.deleteSheet(deleteThis);
+  }
+  gseNew.setName('iZettle Application Extract');
+  var gseCopy = ss.getSheetByName('Copy of Global Services New Extract');
+  gseOld.setName('GS Extract Archived on ' + date);
+  gseCopy.setName('Global Services Last Extract');
+
+  var emailAttachment = DriveApp.getFileById('1bz7mzCqrBJNfNsAl7FPsUJ6dgov703mTanfqIoywC-4');
+  GmailApp.createDraft('', 'iZettle Monthly Application Extract', 'Attached is a spreadsheet containing contracting information and statuses for iZettle third-party applications. All newly added applications will be highlighted in green, deleted applications will be highlighted in red, and changes to applicaiton information will be highlighted in yellow (with the previous data highlighted in orange in the archived sheet). Please let me know if you have any questions.', {
+    attachments: [emailAttachment],
+    name: 'Automatic Emailer Script'
+  });
 //create an email and add that new copy as attachment to the email with the email body explaining colors
-// need to change the name of the old extract we compared against to be archived something then change the latest one to the old name
-
 }//function end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//bullshit comment delete lolz=
