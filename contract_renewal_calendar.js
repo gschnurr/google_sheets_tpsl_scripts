@@ -189,7 +189,7 @@ function create_renewal_calendar() {
 } //end of function
 
 //To make this a function to call in other functions I only need to delete the for loop this should check if it has a y in the edits column
-function del_cal_event_from_rcdb() {
+function del_multiple_cal_event_from_rcdb() {
   var spreadsheet = SpreadsheetApp.getActive();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
@@ -234,5 +234,81 @@ function del_cal_event_from_rcdb() {
       logs_tst('Commit Edits column indicates that this event should NOT be deleted.');
       continue;
     }
+  }
+}
+
+function delete_single_id_event(renewalCalendar, existingEventDbOnedArray, appID, npeColPos, lndeColPos, cedColPos, rcdbSheet) {
+  for (c = 0; c < existingEventDbOnedArray.length; c++) {
+    var dbRow = c + 2;
+    if (existingEventDbOnedArray[c] == appID) {
+      logs_tst('Events with the following SL-ID found and will be deleted and replaced: ' + appID);
+      var npeId = rcdb.getRange(dbRow, npeColPos, 1, 1).getValue();
+      var lndeId = rcdb.getRange(dbRow, lndeColPos, 1, 1).getValue();
+      var cedId = rcdb.getRange(dbRow, cedColPos, 1, 1).getValue();
+      renewalCalendar.getEventById(npeId).deleteEvent();
+      renewalCalendar.getEventById(lndeId).deleteEvent();
+      renewalCalendar.getEventById(cedId).deleteEvent();
+      rcdbSheet.deleteRow(dbRow);
+    }
+    else if (existingEventDbOnedArray[c] != appID && c != (existingEventDbOnedArray.length - 1)) {
+      continue;
+    }
+    else if (existingEventDbOnedArray[c] != appID && c == (existingEventDbOnedArray.length - 1)) {
+      logs_tst('Events do not exist for appID: ' + appID);
+    }
+  }
+}
+
+function update_event(appIdRow){
+  var spreadsheet = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
+  var renewalCalendar = CalendarApp.getCalendarById('izettle.com_d7p21j601qoq1rih87qnhch9lc@group.calendar.google.com');
+
+  var tcaOned = flatten_arr(tpslTitleColumnArr);
+  var tcaAppIdColPos = find_col(tcaOned, 'SL-ID');
+  var tcaAppColPos = find_col(tcaOned, 'Application');
+  var tcaVendClassColPos = find_col(tcaOned, 'Vendor/Supplier Classification');
+  var tcaAppManColPos = find_col(tcaOned, 'Application Manager');
+  var tcaBusOwnColPos = find_col(tcaOned, 'Business System Owner');
+  var tcaAgreeEndDateColPos = find_col(tcaOned, 'Agreement End Date');
+  var tcaLastNoticePeriodColPos = find_col(tcaOned, 'Last Notice Period');
+  var tcaAgreeStartDateColPos = find_col(tcaOned, 'Initial Agreement Start Date');
+
+  var rcdb = ss.getSheetByName('Renewal_Calendar_DB');
+  var rcdbOrigLr = rcdb.getLastRow();
+  var rcdbOrigLc = rcdb.getLastColumn();
+  var rcdbTitleColumnArr = rcdb.getRange(1, 1, 1, rcdbOrigLc).getValues();
+  var rcdbTcaOned = flatten_arr(rcdbTitleColumnArr);
+  var rcdbIdColPos = find_col(rcdbTcaOned, 'SL-ID');
+  var rcdbNotPerEvIdColPos = find_col(rcdbTcaOned, 'Notice Period Event');
+  var rcdbLasNotDayEvIdColPos = find_col(rcdbTcaOned, 'Last Notice Day Event');
+  var rcdbContEndDateEvIdColPos = find_col(rcdbTcaOned, 'Contract End Date');
+  var rcdbIdArr = rcdb.getRange(2, rcdbIdColPos, rcdbOrigLr, 1).getValues();
+  var rcdbIdArrOned = flatten_arr(rcdbIdArr);
+
+  var editAppId = tpsl.getRange(appIdRow, tcaAppIdColPos,1 ,1).getValue();
+
+  var noticePeriod = tpsl.getRange(appIdRow, tcaLastNoticePeriodColPos, 1, 1).getValue();
+  var agreeEndDate = tpsl.getRange(appIdRow, tcaAgreeEndDateColPos, 1, 1).getValue();
+  var appName = tpsl.getRange(appIdRow, tcaAppColPos, 1, 1).getValue();
+  var appMan = tpsl.getRange(appIdRow, tcaAppManColPos, 1, 1).getValue();
+
+  var eventExists = event_creation_validation(rcdbIdArrOned, editAppId);
+
+  if (eventExists == 'yes') {
+    delete_single_id_event(renewalCalendar, rcdbIdArrOned, editAppId, rcdbNotPerEvIdColPos, rcdbLasNotDayEvIdColPos, rcdbContEndDateEvIdColPos, rcdb);
+    var rcdbLr = rcdb.getLastRow();
+    var rcdbFirstEmptyRow = rcdbLr + 1;
+    create_single_day_events(noticePeriod, agreeEndDate, editAppId, appName, appMan, rcdbFirstEmptyRow)
+  }
+  else if (eventExists == 'no') {
+    var rcdbLr = rcdb.getLastRow();
+    var rcdbFirstEmptyRow = rcdbLr + 1;
+    create_single_day_events(noticePeriod, agreeEndDate, editAppId, appName, appMan, rcdbFirstEmptyRow)
+  }
+  else{
+    logs_tst('Something went wrong -- Event exists returned neither yes or no');
   }
 }

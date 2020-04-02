@@ -33,8 +33,13 @@ function onEdit(e){
   }
 
   if (editRowPos > 3 && tpslEditColTitle != 'Last Modified Date' && tpslEditColTitle != 'Last Edit User' && currentEditSheet == '1_Business Systems') {
-    tpsl.getRange(editRowPos, tpslModDateColPos, 1, 1).setValue(date);
-    tpsl.getRange(editRowPos, tpslEditUserColPos, 1, 1).setValue(editUser);
+    if (tpslEditColTitle == 'Last Notice Period' || tpslEditColTitle == 'Agreement End Date') {
+      update_event(editRowPos);
+    }
+    else {
+      tpsl.getRange(editRowPos, tpslModDateColPos, 1, 1).setValue(date);
+      tpsl.getRange(editRowPos, tpslEditUserColPos, 1, 1).setValue(editUser);
+    }
   }
   else if (editRowPos > 1 && ppeEditColTitle != 'Last Modified Date' && ppeEditColTitle != 'Last Edit User' && ppeEditColTitle != 'Updates? (Y/N) If yes please make the updates in this sheet' && currentEditSheet == 'PayPal Extract') {
     ppe.getRange(editRowPos, ppeModDateColPos, 1, 1).setValue(date);
